@@ -8,6 +8,7 @@ use modules::bluetooth::{
     connect_bluetooth, get_bluetooth_status, scan_bluetooth, toggle_bluetooth,
 };
 use modules::display::{get_displays, save_displays};
+use modules::keybinds::{get_keybinds, save_keybinds};
 use modules::settings::{get_app_settings, save_app_settings};
 use modules::startup::{get_startup_commands, save_startup_commands};
 use modules::system::{get_gtk_theme, get_system_info};
@@ -51,7 +52,9 @@ pub fn run() {
             get_hyprland_config,
             save_hyprland_config,
             get_startup_commands,
-            save_startup_commands
+            save_startup_commands,
+            get_keybinds,
+            save_keybinds
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
