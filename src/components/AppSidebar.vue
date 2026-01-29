@@ -29,9 +29,10 @@ const menuGroups = [
         ]
     },
     {
-        title: 'Shortcuts',
+        title: 'System',
         items: [
             { label: 'Shortcuts', icon: 'pi pi-address-book', path: '/shortcuts', color: '#666464' },
+            { label: 'Environment', icon: 'pi pi-box', path: '/env', color: '#666464' },
         ]
     },
 ];

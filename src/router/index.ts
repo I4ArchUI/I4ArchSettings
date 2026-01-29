@@ -7,6 +7,8 @@ import AppearanceView from '../views/AppearanceView.vue';
 import StartupView from '../views/StartupView.vue';
 import KeybindsView from '../views/KeybindsView.vue';
 
+import EnvView from '../views/EnvView.vue';
+
 const routes = [
     { path: '/', redirect: '/about' },
     { path: '/about', name: 'About System', component: AboutView },
@@ -14,6 +16,7 @@ const routes = [
     { path: '/bluetooth', name: 'Bluetooth', component: BluetoothView },
     { path: '/appearance', name: 'Appearance', component: AppearanceView },
     { path: '/displays', name: 'Displays', component: DisplaysView },
+    { path: '/env', name: 'Environment', component: EnvView },
     { path: '/startup', name: 'Startup Apps', component: StartupView },
     { path: '/shortcuts', name: 'Keybinds', component: KeybindsView },
 ];

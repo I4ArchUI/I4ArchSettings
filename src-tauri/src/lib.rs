@@ -8,6 +8,7 @@ use modules::bluetooth::{
     connect_bluetooth, get_bluetooth_status, scan_bluetooth, toggle_bluetooth,
 };
 use modules::display::{get_displays, save_displays};
+use modules::env::{get_env_vars, save_env_vars};
 use modules::keybinds::{get_keybinds, save_keybinds};
 use modules::settings::{get_app_settings, save_app_settings};
 use modules::startup::{get_startup_commands, save_startup_commands};
@@ -54,7 +55,9 @@ pub fn run() {
             get_startup_commands,
             save_startup_commands,
             get_keybinds,
-            save_keybinds
+            save_keybinds,
+            get_env_vars,
+            save_env_vars
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

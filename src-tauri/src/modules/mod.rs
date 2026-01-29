@@ -1,6 +1,7 @@
 pub mod appearance;
 pub mod bluetooth;
 pub mod display;
+pub mod env;
 pub mod keybinds;
 pub mod settings;
 pub mod startup;
