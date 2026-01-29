@@ -226,44 +226,6 @@ onMounted(async () => {
     margin-left: auto;
 }
 
-:deep(.status-toggle-compact) {
-    display: flex;
-    gap: 4px;
-    padding: 3px;
-    background: var(--bg-secondary);
-    border-radius: 6px;
-    border: 1px solid var(--card-border);
-}
-
-:deep(.status-btn) {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 32px;
-    height: 32px;
-    background: transparent;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    color: var(--text-secondary);
-}
-
-:deep(.status-btn i) {
-    font-size: 1.1rem;
-}
-
-:deep(.status-btn:hover:not(.active)) {
-    background: var(--card-bg);
-    color: var(--text-primary);
-}
-
-:deep(.status-btn.active) {
-    background: var(--accent-color);
-    color: white;
-    box-shadow: 0 1px 4px rgba(0, 122, 255, 0.3);
-}
-
 :deep(.form-grid) {
     display: grid;
     grid-template-columns: 1fr 1fr;
