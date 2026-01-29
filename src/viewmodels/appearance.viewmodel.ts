@@ -74,7 +74,6 @@ export function useAppearanceViewModel() {
             hyprlandConfig.value = await invoke('get_hyprland_config');
 
         } catch (e) {
-            console.error('Failed to load appearance data:', e);
             showToast('Failed to load appearance settings', 'error');
         }
     };
@@ -90,7 +89,6 @@ export function useAppearanceViewModel() {
             });
             showToast('Appearance settings applied successfully', 'success');
         } catch (e: any) {
-            console.error('Failed to apply settings:', e);
             showToast('Failed to apply settings: ' + e, 'error');
         }
     };
@@ -114,7 +112,6 @@ export function useAppearanceViewModel() {
             });
             showToast('Window settings saved', 'success');
         } catch (e: any) {
-            console.error('Failed to save hyprland config:', e);
             showToast('Failed to save window settings: ' + e, 'error');
         }
     };
@@ -139,7 +136,7 @@ export function useAppearanceViewModel() {
                 }
             });
         } catch (e) {
-            console.error('Save settings error:', e);
+            showToast('Save settings error: ' + e, 'error');
         }
     };
 
@@ -182,7 +179,6 @@ export function useAppearanceViewModel() {
                 showToast('Wallpaper updated successfully', 'success');
             }
         } catch (e: any) {
-            console.error('Failed to set wallpaper:', e);
             showToast('Failed to set wallpaper: ' + e, 'error');
         } finally {
             loading.value = false;
@@ -210,7 +206,6 @@ export function useAppearanceViewModel() {
 
             showToast(`Taskbar position set to ${position}`, 'success');
         } catch (e: any) {
-            console.error('Failed to set waybar position:', e);
             showToast('Failed to set taskbar position: ' + e, 'error');
         } finally {
             changingPosition.value = false;
@@ -227,7 +222,7 @@ export function useAppearanceViewModel() {
                 waybarPosition.value = settings.waybar_position;
             }
         } catch (e) {
-            console.error('Failed to load app settings:', e);
+            showToast('Failed to load app settings: ' + e, 'error');
         }
 
         // Initial Preview Load

@@ -3,6 +3,7 @@
 import { ref, onMounted } from 'vue';
 import { invoke } from '@tauri-apps/api/core';
 import logo from "../assets/logo.jpg";
+import PageLayout from '../components/common/PageLayout.vue';
 
 interface SystemInfo {
     hostname: string;
@@ -27,7 +28,6 @@ onMounted(async () => {
     try {
         sysInfo.value = await invoke('get_system_info');
     } catch (e) {
-        console.error("Failed to get system info:", e);
     } finally {
         loading.value = false;
     }
@@ -35,29 +35,27 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="about-view">
-    <div class="header">
-        <h1 class="page-title">About System</h1>
-    </div>
+  <PageLayout>
+    <template #title>About System</template>
 
     <div v-if="loading" class="loading-container">
         <i class="pi pi-spin pi-spinner" style="font-size: 2rem"></i>
         <p>Fetching system information...</p>
     </div>
 
-    <div v-else class="content-container">
-        <div class="hero-section">
+    <div v-else class="about-content">
+        <div class="hero-section glass-panel">
             <div class="os-logo">
-                <img :src="logo" style="width: 100px; height: 100px; border-radius: 10px;" :alt="sysInfo.os_name">
+                <img :src="logo" class="logo-img" :alt="sysInfo.os_name">
             </div>
             <div class="os-title">
                 <h2>{{ sysInfo.hostname }}</h2>
-                <p class="subtitle">{{ sysInfo.os_name || 'Linux System' }}</p>
+                <p class="subtitle">{{ sysInfo.os_name || 'Linux System' }} - {{ sysInfo.kernel_version }}</p>
             </div>
         </div>
 
         <div class="info-grid">
-            <div class="info-card">
+            <div class="info-card glass-panel">
                 <div class="card-icon"><i class="pi pi-cog"></i></div>
                 <div class="card-content">
                     <span class="label">Kernel</span>
@@ -65,7 +63,7 @@ onMounted(async () => {
                 </div>
             </div>
 
-            <div class="info-card">
+            <div class="info-card glass-panel">
                 <div class="card-icon"><i class="pi pi-server"></i></div>
                 <div class="card-content">
                     <span class="label">Processor</span>
@@ -73,7 +71,7 @@ onMounted(async () => {
                 </div>
             </div>
 
-            <div class="info-card">
+            <div class="info-card glass-panel">
                 <div class="card-icon"><i class="pi pi-database"></i></div>
                 <div class="card-content">
                     <span class="label">Memory</span>
@@ -81,7 +79,7 @@ onMounted(async () => {
                 </div>
             </div>
             
-            <div class="info-card" v-if="sysInfo.gpu_info && sysInfo.gpu_info !== 'Unknown'">
+            <div class="info-card glass-panel" v-if="sysInfo.gpu_info && sysInfo.gpu_info !== 'Unknown'">
                 <div class="card-icon"><i class="pi pi-image"></i></div>
                 <div class="card-content">
                     <span class="label">Graphics</span>
@@ -90,27 +88,10 @@ onMounted(async () => {
             </div>
         </div>
     </div>
-  </div>
+  </PageLayout>
 </template>
 
 <style scoped>
-.about-view {
-    padding: 0 40px 40px 40px;
-    max-width: 900px;
-    margin: 0 auto;
-    width: 100%;
-}
-
-.header {
-    padding: 20px 0 30px 0;
-}
-
-.page-title {
-    font-size: 24px;
-    font-weight: 700;
-    margin: 0;
-}
-
 .loading-container {
     display: flex;
     flex-direction: column;
@@ -121,31 +102,54 @@ onMounted(async () => {
     gap: 15px;
 }
 
+.about-content {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.glass-panel {
+    background: var(--card-bg);
+    border-radius: 12px;
+    border: 1px solid var(--card-border);
+    box-shadow: 0 4px 6px -2px rgba(0, 0, 0, 0.05); /* Subtle shadow for depth */
+}
+
 .hero-section {
     display: flex;
+    flex-direction: row;
     align-items: center;
-    gap: 30px;
-    margin-bottom: 40px;
-    background: var(--card-bg, #fff);
-    padding: 30px;
-    border-radius: 16px;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+    justify-content: flex-start;
+    gap: 20px;
+    padding: 40px;
+    text-align: left;
 }
 
 .os-logo {
-    width: 100px;
-    height: 100px;
-    background: var(--bg-secondary, #f5f5f7);
-    border-radius: 50%;
+    width: 110px;
+    height: 110px;
+    background: white; /* Assuming logo needs white bg as per screenshot avatar style or just container */
+    border-radius: 16px;
     display: flex;
     align-items: center;
     justify-content: center;
+    padding: 2px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.logo-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 14px;
+    display: block;
 }
 
 .os-title h2 {
-    margin: 0 0 5px 0;
+    margin: 0 0 8px 0;
     font-size: 28px;
     font-weight: 700;
+    color: var(--text-primary);
 }
 
 .subtitle {
@@ -156,71 +160,73 @@ onMounted(async () => {
 
 .info-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    grid-template-columns: repeat(2, 1fr); /* 2 columns as per screenshot */
     gap: 20px;
 }
 
+@media (min-width: 1000px) {
+    .info-grid {
+        grid-template-columns: repeat(2, 1fr); /* Keep 2 columns for this specific look, or auto-fit if preferred, but screenshot shows 2x2 */
+    }
+}
+
 .info-card {
-    background: var(--card-bg, #fff);
-    padding: 20px;
-    border-radius: 12px;
+    padding: 30px 20px;
     display: flex;
-    align-items: center; /* Center vertically */
-    gap: 15px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.02);
-    border: 1px solid rgba(0,0,0,0.05);
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    text-align: center;
     transition: transform 0.2s, box-shadow 0.2s;
+    height: 100%;
+    box-sizing: border-box;
+    min-height: 160px;
 }
 
 .info-card:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.08);
 }
 
 .card-icon {
-    width: 40px;
-    height: 40px;
-    border-radius: 10px;
-    background: var(--bg-secondary, #f0f2f5);
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    background: var(--bg-secondary); /* Darker container */
     display: flex;
     align-items: center;
     justify-content: center;
-    color: var(--accent-color, #007aff);
+    color: #0099ff; /* Specific blue from screenshot */
+    margin-bottom: 4px;
+}
+
+.card-icon i {
+    font-size: 1.2rem;
 }
 
 .card-content {
     display: flex;
     flex-direction: column;
-    overflow: hidden; /* Prevent text overflow */
+    align-items: center;
+    gap: 6px;
+    width: 100%;
 }
 
 .label {
-    font-size: 12px;
+    font-size: 11px;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
-    color: var(--text-secondary, #888);
-    font-weight: 600;
-    margin-bottom: 4px;
+    letter-spacing: 0.8px;
+    color: var(--text-secondary);
+    font-weight: 700;
+    opacity: 0.8;
 }
 
 .value {
     font-size: 15px;
     font-weight: 500;
-    word-break: break-word;
+    color: var(--text-primary);
     line-height: 1.4;
-}
-
-@media (prefers-color-scheme: dark) {
-    .hero-section, .info-card {
-        background: rgba(255,255,255,0.05);
-        border-color: rgba(255,255,255,0.05);
-    }
-    .os-logo {
-        background: rgba(255,255,255,0.1);
-    }
-    .card-icon {
-        background: rgba(255,255,255,0.1);
-        color: #5ac8fa;
-    }
+    max-width: 90%;
 }
 </style>

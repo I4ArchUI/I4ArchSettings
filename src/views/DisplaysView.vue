@@ -8,6 +8,7 @@ import { onMounted } from 'vue';
 import { useDisplayViewModel } from '../viewmodels/display.viewmodel';
 import MonitorCard from '@/components/display/MonitorCard.vue';
 import LoadingState from '@/components/LoadingState.vue';
+import PageLayout from '../components/common/PageLayout.vue';
 
 // Initialize ViewModel using composable
 const {
@@ -36,19 +37,16 @@ onMounted(async () => {
 </script>
 
 <template>
-    <div class="displays-view">
-        <!-- Header Component -->
-        <div class="header">
-            <h1 class="page-title">Displays</h1>
-            <div class="actions">
-                <button class="p-button primary-btn" @click="saveSettings">
-                    <i class="pi pi-save"></i> Save
-                </button>
-                <button class="p-button-icon-only refresh-btn" @click="fetchMonitors" title="Refresh">
-                    <i class="pi pi-refresh" :class="{ 'pi-spin': loading }"></i>
-                </button>
-            </div>
-        </div>
+    <PageLayout>
+        <template #title>Displays</template>
+        <template #actions>
+            <button class="primary-btn" @click="saveSettings">
+                <i class="pi pi-save"></i> Save
+            </button>
+            <button class="icon-btn" @click="fetchMonitors" title="Refresh">
+                <i class="pi pi-refresh" :class="{ 'pi-spin': loading }"></i>
+            </button>
+        </template>
 
         <!-- Loading State Component -->
         <LoadingState v-if="loading && monitors.length === 0" />
@@ -72,70 +70,10 @@ onMounted(async () => {
                 @mirror-focus="onMirrorDropdownFocus"
             />
         </div>
-    </div>
+    </PageLayout>
 </template>
 
 <style scoped>
-.header {
-    padding: 20px 0 30px 0;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.page-title {
-    font-size: 1.75rem;
-    font-weight: 600;
-    color: var(--text-primary);
-}
-
-.actions {
-    display: flex;
-    gap: 12px;
-}
-
-.p-button {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 8px 16px;
-    border-radius: 6px;
-    font-weight: 500;
-    cursor: pointer;
-    font-size: 0.9rem;
-    border: none;
-    transition: all 0.2s;
-}
-
-.primary-btn {
-    background: var(--accent-color);
-    color: white;
-}
-
-.primary-btn:hover {
-    filter: brightness(1.1);
-}
-
-.refresh-btn {
-    border: none;
-    background: transparent;
-    color: var(--text-secondary);
-    cursor: pointer;
-    transition: color 0.2s ease;
-}
-
-.refresh-btn:hover {
-    color: var(--text-primary);
-}
-
-.displays-view {
-    padding: 0 40px 40px 40px;
-    max-width: 1200px;
-    margin: 0 auto;
-    width: 100%;
-    box-sizing: border-box;
-}
-
 .monitors-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));

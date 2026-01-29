@@ -23,7 +23,6 @@ export function useBluetoothViewModel() {
         try {
             isEnabled.value = await invoke('get_bluetooth_status');
         } catch (e) {
-            console.error('Failed to get status:', e);
         }
     };
 
@@ -32,7 +31,6 @@ export function useBluetoothViewModel() {
         try {
             devices.value = await invoke('scan_bluetooth');
         } catch (e) {
-            console.error('Scan failed:', e);
             showToast('Bluetooth scan failed: ' + e, 'error');
         } finally {
             loading.value = false;
@@ -48,7 +46,6 @@ export function useBluetoothViewModel() {
                 devices.value = [];
             }
         } catch (e) {
-            console.error('Toggle failed:', e);
             isEnabled.value = !isEnabled.value;
             showToast('Failed to toggle Bluetooth: ' + e, 'error');
         }
@@ -64,7 +61,6 @@ export function useBluetoothViewModel() {
             dev.connected = true;
             showToast(`Connected to ${dev.name || dev.mac}`, 'success');
         } catch (e) {
-            console.error('Connect failed:', e);
             showToast(`Failed to connect to ${dev.name || dev.mac}: ` + e, 'error');
         } finally {
             loading.value = false;

@@ -54,7 +54,6 @@ export function useWifiViewModel() {
         try {
             isEnabled.value = await invoke('get_wifi_status');
         } catch (e) {
-            console.error('Failed to check status:', e);
         }
     };
 
@@ -66,7 +65,6 @@ export function useWifiViewModel() {
         try {
             networks.value = await invoke('scan_wifi');
         } catch (e) {
-            console.error('Scan failed:', e);
         } finally {
             loading.value = false;
         }
@@ -83,8 +81,6 @@ export function useWifiViewModel() {
                 stopScanInterval();
             }
         } catch (e) {
-            console.error('Toggle failed:', e);
-            // Revert state on failure
             isEnabled.value = !isEnabled.value;
             showToast('Failed to toggle Wi-Fi', 'error');
         }
@@ -104,7 +100,6 @@ export function useWifiViewModel() {
             await scan(true);
             showToast(`Connected to ${net.ssid}`, 'success');
         } catch (e: any) {
-            console.error('Connection failed:', e);
             showToast('Connection failed: ' + e, 'error');
         } finally {
             connectingSsid.value = null;
@@ -118,7 +113,6 @@ export function useWifiViewModel() {
             config.value = conf;
             showConfigModal.value = true;
         } catch (e) {
-            console.error('Failed to get config', e);
             showToast('Failed to retrieve configuration', 'error');
         }
     };
@@ -143,7 +137,6 @@ export function useWifiViewModel() {
             await scan(true);
             showToast('Network settings saved successfully', 'success');
         } catch (e) {
-            console.error('Failed to save config', e);
             showToast(`Failed to apply settings: ${e}`, 'error');
         } finally {
             savingConfig.value = false;
