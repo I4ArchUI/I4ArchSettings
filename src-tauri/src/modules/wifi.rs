@@ -2,6 +2,7 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use tokio::process::Command;
 
+/// Represents a Wi-Fi network with its signal strength and status.
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct WifiNetwork {
     ssid: String,
@@ -11,6 +12,7 @@ pub struct WifiNetwork {
     active: bool,
 }
 
+/// Configuration for a Wi-Fi connection (IPv4 settings).
 #[derive(Debug, Serialize, Deserialize)]
 pub struct WifiConfig {
     method: String,
@@ -20,6 +22,7 @@ pub struct WifiConfig {
     dns: String,
 }
 
+/// Checks if Wi-Fi radio is currently enabled.
 #[tauri::command]
 pub async fn get_wifi_status() -> bool {
     let output = Command::new("nmcli")
@@ -36,6 +39,7 @@ pub async fn get_wifi_status() -> bool {
     }
 }
 
+/// Toggles Wi-Fi radio power state.
 #[tauri::command]
 pub async fn toggle_wifi(enable: bool) -> Result<(), String> {
     let state = if enable { "on" } else { "off" };
@@ -47,6 +51,7 @@ pub async fn toggle_wifi(enable: bool) -> Result<(), String> {
     Ok(())
 }
 
+/// Scans for available Wi-Fi networks and returns a deduplicated list.
 #[tauri::command]
 pub async fn scan_wifi() -> Result<Vec<WifiNetwork>, String> {
     // nmcli -t -f ACTIVE,SSID,SECURITY,BARS,SIGNAL dev wifi list
@@ -67,11 +72,7 @@ pub async fn scan_wifi() -> Result<Vec<WifiNetwork>, String> {
     let mut map: HashMap<String, WifiNetwork> = HashMap::new();
 
     for line in stdout.lines() {
-        // Format: ACTIVE:SSID:SECURITY:BARS:SIGNAL
-        // Note: SSID can contain colons, need to handle split carefully or rejoin.
-        // But since we asked for specific fields, we know the structure.
-        // Active is first, Signal is last, Bars is second to last.
-
+        // Parse colon-separated output carefully (SSID may contain colons)
         let parts: Vec<&str> = line.split(':').collect();
 
         if parts.len() >= 5 {
@@ -80,7 +81,7 @@ pub async fn scan_wifi() -> Result<Vec<WifiNetwork>, String> {
             let bars = parts[parts.len() - 2].to_string();
             let security = parts[parts.len() - 3].to_string();
 
-            // SSID is everything between index 1 and len-3
+            // SSID is between the 'active' field and the 'security' field
             let ssid_parts = &parts[1..parts.len() - 3];
             let ssid = ssid_parts.join(":");
 
@@ -93,8 +94,7 @@ pub async fn scan_wifi() -> Result<Vec<WifiNetwork>, String> {
                     active,
                 };
 
-                // Deduplication logic: Insert if not exists, or replace if better.
-                // Better means: currently active OR (same active state AND higher signal)
+                // Deduplicate by SSID, preferring the active connection or the strongest signal
                 match map.get(&ssid) {
                     Some(existing) => {
                         let is_better = if network.active && !existing.active {
@@ -118,12 +118,13 @@ pub async fn scan_wifi() -> Result<Vec<WifiNetwork>, String> {
     }
 
     let mut networks: Vec<WifiNetwork> = map.into_values().collect();
-    // Sort by Active first, then Signal strength descending
+    // Sort: Active first, then Signal strength descending
     networks.sort_by(|a, b| b.active.cmp(&a.active).then(b.signal.cmp(&a.signal)));
 
     Ok(networks)
 }
 
+/// Connects to a Wi-Fi network using the provided SSID and optional password.
 #[tauri::command]
 pub async fn connect_wifi(ssid: String, password: Option<String>) -> Result<String, String> {
     let mut cmd = Command::new("nmcli");
@@ -142,11 +143,10 @@ pub async fn connect_wifi(ssid: String, password: Option<String>) -> Result<Stri
     }
 }
 
+/// Retrieves the connection configuration (IPv4) for a given SSID.
 #[tauri::command]
 pub async fn get_wifi_config(ssid: String) -> Result<WifiConfig, String> {
-    // We fetch both the persistent configuration (ipv4.*) and the current active values (IP4.*)
-    // accessible via 'connection show' (active values present if connected).
-    // Using -g returns just the values, one per line (or separated by newlines).
+    // Fetch persistent configuration and current active values from nmcli
     let output = Command::new("nmcli")
         .args(&[
             "-g",
@@ -160,7 +160,7 @@ pub async fn get_wifi_config(ssid: String) -> Result<WifiConfig, String> {
         .map_err(|e| e.to_string())?;
 
     if !output.status.success() {
-        // Likely no connection profile exists, return default DHCP
+        // Return default DHCP settings if no profile exists
         return Ok(WifiConfig {
             method: "auto".to_string(),
             ip_address: "".to_string(),
@@ -173,17 +173,8 @@ pub async fn get_wifi_config(ssid: String) -> Result<WifiConfig, String> {
     let stdout = String::from_utf8_lossy(&output.stdout);
     let lines: Vec<&str> = stdout.lines().collect();
 
-    // We requested 7 fields.
-    // 0: ipv4.method
-    // 1: ipv4.addresses
-    // 2: ipv4.gateway
-    // 3: ipv4.dns
-    // 4: IP4.ADDRESS (active)
-    // 5: IP4.GATEWAY (active)
-    // 6: IP4.DNS (active)
-
+    // Map output lines to specific fields
     if lines.len() < 4 {
-        // Fallback if parsing failed or fields missing
         return Ok(WifiConfig {
             method: "auto".to_string(),
             ip_address: "".to_string(),
@@ -208,7 +199,7 @@ pub async fn get_wifi_config(ssid: String) -> Result<WifiConfig, String> {
         conf_method.to_string()
     };
 
-    // Address/Prefix: Use config if present, else active
+    // Resolve IP address and prefix (preferring persistent config over active values)
     let full_address = if !conf_addr.is_empty() {
         conf_addr.to_string()
     } else if !active_addr.is_empty() {
@@ -223,7 +214,6 @@ pub async fn get_wifi_config(ssid: String) -> Result<WifiConfig, String> {
         (full_address, 24)
     };
 
-    // Gateway
     let gateway = if !conf_gw.is_empty() {
         conf_gw.to_string()
     } else if !active_gw.is_empty() {
@@ -232,7 +222,6 @@ pub async fn get_wifi_config(ssid: String) -> Result<WifiConfig, String> {
         String::new()
     };
 
-    // DNS
     let dns = if !conf_dns.is_empty() {
         conf_dns.to_string()
     } else if !active_dns.is_empty() {
@@ -250,9 +239,9 @@ pub async fn get_wifi_config(ssid: String) -> Result<WifiConfig, String> {
     })
 }
 
+/// Updates the connection configuration for a given SSID and applies changes.
 #[tauri::command]
 pub async fn set_wifi_config(ssid: String, config: WifiConfig) -> Result<(), String> {
-    // Construct single atomic modify command
     let mut args = vec!["connection".to_string(), "modify".to_string(), ssid.clone()];
 
     args.push("ipv4.method".to_string());
@@ -264,35 +253,32 @@ pub async fn set_wifi_config(ssid: String, config: WifiConfig) -> Result<(), Str
         args.push(full_address);
 
         args.push("ipv4.gateway".to_string());
-        if !config.gateway.is_empty() {
-            args.push(config.gateway.clone());
+        args.push(if !config.gateway.is_empty() {
+            config.gateway.clone()
         } else {
-            args.push("".to_string());
-        }
+            "".to_string()
+        });
     } else {
-        // Clean up manual settings when switching to auto (dhcp)
-        // We do NOT clear DNS here anymore, as we handle it below.
+        // Clear static settings when switching back to auto
         args.push("ipv4.addresses".to_string());
         args.push("".to_string());
         args.push("ipv4.gateway".to_string());
         args.push("".to_string());
     }
 
-    // Handle DNS separately (for both Auto and Manual)
+    // Configure DNS settings and handle 'ignore-auto-dns'
     args.push("ipv4.dns".to_string());
     if !config.dns.is_empty() {
         args.push(config.dns.clone());
-        // If we set custom DNS, we usually want to ignore auto DNS to ensure our DNS is used/preferred
         args.push("ipv4.ignore-auto-dns".to_string());
         args.push("yes".to_string());
     } else {
         args.push("".to_string());
-        // Restore auto DNS behavior
         args.push("ipv4.ignore-auto-dns".to_string());
         args.push("no".to_string());
     }
 
-    // 1. Execute Modify
+    // Apply configuration changes
     let output = Command::new("nmcli")
         .args(&args)
         .output()
@@ -306,7 +292,7 @@ pub async fn set_wifi_config(ssid: String, config: WifiConfig) -> Result<(), Str
         ));
     }
 
-    // 2. Re-activate connection (Up) to apply changes immediately
+    // Re-activate connection to apply settings immediately
     let output = Command::new("nmcli")
         .args(&["connection", "up", &ssid])
         .output()
@@ -314,7 +300,10 @@ pub async fn set_wifi_config(ssid: String, config: WifiConfig) -> Result<(), Str
         .map_err(|e| e.to_string())?;
 
     if !output.status.success() {
-        return Err(format!("Configuration saved but activation failed. You may need to reconnect manually. Error: {}", String::from_utf8_lossy(&output.stderr)));
+        return Err(format!(
+            "Configuration saved but activation failed: {}",
+            String::from_utf8_lossy(&output.stderr)
+        ));
     }
 
     Ok(())

@@ -4,9 +4,10 @@ use serde::{Deserialize, Serialize};
 use std::str::FromStr;
 use tokio::sync::Mutex;
 
+/// Manages the state for Bluetooth operations.
 pub struct BluetoothState {
-    // Bluetooth discovery is a RAII guard in bluer.
-    // Dropping it stops discovery (if no one else is discovering).
+    /// Bluetooth discovery session guard.
+    /// Dropping this automatically stops discovery.
     discovery_session: Mutex<Option<Box<dyn Stream<Item = AdapterEvent> + Send + Unpin>>>,
 }
 
@@ -18,6 +19,7 @@ impl BluetoothState {
     }
 }
 
+/// Represents a Bluetooth device with its metadata.
 #[derive(Debug, Serialize, Deserialize)]
 pub struct BluetoothDevice {
     mac: String,
@@ -27,13 +29,14 @@ pub struct BluetoothDevice {
     icon: Option<String>,
 }
 
-// Helper to get adapter
+/// Helper function to retrieve the default Bluetooth adapter.
 async fn get_adapter() -> Result<Adapter, String> {
     let session = Session::new().await.map_err(|e| e.to_string())?;
     let adapter = session.default_adapter().await.map_err(|e| e.to_string())?;
     Ok(adapter)
 }
 
+/// Checks if Bluetooth is currently powered on.
 #[tauri::command]
 pub async fn get_bluetooth_status() -> bool {
     match get_adapter().await {
@@ -42,6 +45,7 @@ pub async fn get_bluetooth_status() -> bool {
     }
 }
 
+/// Toggles Bluetooth power state.
 #[tauri::command]
 pub async fn toggle_bluetooth(enable: bool) -> Result<(), String> {
     let adapter = get_adapter().await?;
@@ -52,19 +56,19 @@ pub async fn toggle_bluetooth(enable: bool) -> Result<(), String> {
     Ok(())
 }
 
+/// Starts scanning for nearby Bluetooth devices.
 #[tauri::command]
 pub async fn start_scan(state: tauri::State<'_, BluetoothState>) -> Result<(), String> {
     let adapter = get_adapter().await?;
 
-    // Ensure powered on
+    // Ensure adapter is powered on before scanning
     if !adapter.is_powered().await.unwrap_or(false) {
         let _ = adapter.set_powered(true).await;
     }
 
     let mut guard = state.discovery_session.lock().await;
     if guard.is_none() {
-        // Start discovery. This returns a stream, but effectively puts adapter in discovery mode
-        // as long as the session object is alive.
+        // Initialize discovery session and store it in state
         let discovery = adapter
             .discover_devices()
             .await
@@ -75,13 +79,15 @@ pub async fn start_scan(state: tauri::State<'_, BluetoothState>) -> Result<(), S
     Ok(())
 }
 
+/// Stops the current Bluetooth device scan.
 #[tauri::command]
 pub async fn stop_scan(state: tauri::State<'_, BluetoothState>) -> Result<(), String> {
     let mut guard = state.discovery_session.lock().await;
-    *guard = None; // Drop the guard to stop discovery
+    *guard = None; // Drop the guard to terminate discovery
     Ok(())
 }
 
+/// Retrieves a list of discovered Bluetooth devices.
 #[tauri::command]
 pub async fn get_bluetooth_devices() -> Result<Vec<BluetoothDevice>, String> {
     let adapter = get_adapter().await?;
@@ -98,10 +104,10 @@ pub async fn get_bluetooth_devices() -> Result<Vec<BluetoothDevice>, String> {
             let alias = device.alias().await.unwrap_or_default();
             let addr_str = addr.to_string();
 
-            // Prefer name, then alias, then address
+            // Resolve display name: Name > Alias > MAC Address
             let display_name = name.or(Some(alias)).unwrap_or(addr_str.clone());
 
-            // Simple Junk Filter
+            // Filter out internal/junk entries that match the MAC address format
             if display_name
                 .replace('-', ":")
                 .eq_ignore_ascii_case(&addr_str)
@@ -111,7 +117,6 @@ pub async fn get_bluetooth_devices() -> Result<Vec<BluetoothDevice>, String> {
 
             let connected = device.is_connected().await.unwrap_or(false);
             let paired = device.is_paired().await.unwrap_or(false);
-
             let icon = device.icon().await.unwrap_or(None);
 
             result.push(BluetoothDevice {
@@ -127,6 +132,7 @@ pub async fn get_bluetooth_devices() -> Result<Vec<BluetoothDevice>, String> {
     Ok(result)
 }
 
+/// Attempts to connect to a Bluetooth device by its MAC address.
 #[tauri::command]
 pub async fn connect_bluetooth(mac: String) -> Result<String, String> {
     let adapter = get_adapter().await?;

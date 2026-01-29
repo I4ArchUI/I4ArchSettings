@@ -1,13 +1,12 @@
-/**
- * Wifi ViewModel (Composable)
- * Contains business logic for Wifi management
- */
-
 import { ref, onMounted, onUnmounted } from 'vue';
 import { invoke } from '@tauri-apps/api/core';
 import type { WifiNetwork, WifiConfig } from '../models/wifi.model.ts';
 import { useToast } from '../composables/useToast';
 
+/**
+ * ViewModel for managing Wi-Fi networks and settings.
+ * Handles scanning, connecting, and configuring Wi-Fi connections.
+ */
 export function useWifiViewModel() {
     // --- State ---
     const isEnabled = ref(false);
@@ -15,10 +14,9 @@ export function useWifiViewModel() {
     const loading = ref(false);
     const connectingSsid = ref<string | null>(null);
 
-    // Notifications
     const { showToast } = useToast();
 
-    // Config Modal State
+    // Configuration Modal state
     const showConfigModal = ref(false);
     const savingConfig = ref(false);
     const selectedSsid = ref('');
@@ -34,6 +32,9 @@ export function useWifiViewModel() {
 
     // --- Actions ---
 
+    /**
+     * Starts periodic background scanning for networks.
+     */
     const startScanInterval = () => {
         if (scanInterval) clearInterval(scanInterval);
         scanInterval = setInterval(() => {
@@ -43,6 +44,9 @@ export function useWifiViewModel() {
         }, 10000);
     };
 
+    /**
+     * Stops the periodic scan interval.
+     */
     const stopScanInterval = () => {
         if (scanInterval) {
             clearInterval(scanInterval);
@@ -50,13 +54,21 @@ export function useWifiViewModel() {
         }
     };
 
+    /**
+     * Checks if Wi-Fi is currently enabled.
+     */
     const checkStatus = async () => {
         try {
             isEnabled.value = await invoke('get_wifi_status');
         } catch (e) {
+            console.error("Failed to check Wi-Fi status:", e);
         }
     };
 
+    /**
+     * Scans for available Wi-Fi networks.
+     * @param isBackground If true, suppresses the loading spinner.
+     */
     const scan = async (isBackground = false) => {
         if (!isBackground && networks.value.length === 0) {
             loading.value = true;
@@ -65,11 +77,15 @@ export function useWifiViewModel() {
         try {
             networks.value = await invoke('scan_wifi');
         } catch (e) {
+            console.error("Wi-Fi scan failed:", e);
         } finally {
             loading.value = false;
         }
     };
 
+    /**
+     * Toggles Wi-Fi power on or off.
+     */
     const toggleWifi = async () => {
         try {
             await invoke('toggle_wifi', { enable: isEnabled.value });
@@ -86,17 +102,15 @@ export function useWifiViewModel() {
         }
     };
 
+    /**
+     * Connects to a specific Wi-Fi network.
+     */
     const connect = async (net: WifiNetwork) => {
-        // Prevent clicking active or processing network
         if (net.active || connectingSsid.value) return;
 
         connectingSsid.value = net.ssid;
-
         try {
-            // "connect_wifi" calls nmcli (blocking)
             await invoke('connect_wifi', { ssid: net.ssid, password: null });
-
-            // Re-scan to update active status
             await scan(true);
             showToast(`Connected to ${net.ssid}`, 'success');
         } catch (e: any) {
@@ -106,6 +120,9 @@ export function useWifiViewModel() {
         }
     };
 
+    /**
+     * Opens the configuration modal for a specific network.
+     */
     const openConfig = async (net: WifiNetwork) => {
         selectedSsid.value = net.ssid;
         try {
@@ -117,23 +134,25 @@ export function useWifiViewModel() {
         }
     };
 
+    /**
+     * Closes the configuration modal.
+     */
     const closeConfig = () => {
         showConfigModal.value = false;
     };
 
+    /**
+     * Saves the current Wi-Fi configuration (IP, DNS, etc.) to the system.
+     */
     const saveConfig = async () => {
         savingConfig.value = true;
         try {
-            // Ensure prefix is a number just in case
             config.value.prefix = Number(config.value.prefix);
-
             await invoke('set_wifi_config', {
                 ssid: selectedSsid.value,
                 config: config.value
             });
-
             showConfigModal.value = false;
-            // Re-scan to reflect changes if necessary
             await scan(true);
             showToast('Network settings saved successfully', 'success');
         } catch (e) {
@@ -157,7 +176,6 @@ export function useWifiViewModel() {
     });
 
     return {
-        // State
         isEnabled,
         networks,
         loading,
@@ -166,8 +184,6 @@ export function useWifiViewModel() {
         savingConfig,
         selectedSsid,
         config,
-
-        // Methods
         toggleWifi,
         scan,
         connect,
