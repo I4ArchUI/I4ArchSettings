@@ -9,6 +9,7 @@ use modules::bluetooth::{
 };
 use modules::display::{get_displays, save_displays};
 use modules::settings::{get_app_settings, save_app_settings};
+use modules::startup::{get_startup_commands, save_startup_commands};
 use modules::system::{get_gtk_theme, get_system_info};
 use modules::wallpaper::{get_current_wallpaper_path, get_wallpaper_base64, set_wallpaper};
 use modules::waybar::{get_waybar_position, set_waybar_position};
@@ -48,7 +49,9 @@ pub fn run() {
             apply_appearance_conf,
             get_current_appearance_config,
             get_hyprland_config,
-            save_hyprland_config
+            save_hyprland_config,
+            get_startup_commands,
+            save_startup_commands
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
