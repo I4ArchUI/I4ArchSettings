@@ -8,4 +8,5 @@ export interface BluetoothDevice {
     name: string;
     connected: boolean;
     paired: boolean;
+    icon?: string;
 }

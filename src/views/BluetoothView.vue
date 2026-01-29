@@ -6,11 +6,45 @@ import SettingsCard from '../components/common/SettingsCard.vue';
 
 const {
     isEnabled,
-    devices,
+    sortedDevices,
     loading,
+    connectingMac,
     toggleBluetooth,
     connect
 } = useBluetoothViewModel();
+
+const getDeviceIcon = (iconName?: string) => {
+    if (!iconName) return 'pi pi-bluetooth';
+    
+    const icon = iconName.toLowerCase();
+
+    switch (icon) {
+        case 'audio-headphones':
+            return 'pi pi-headphones';
+        case 'audio':
+            return 'pi pi-volume-up';
+        case 'keyboard':
+            return 'pi pi-microchip'; 
+        case 'mouse':
+            return 'pi pi-box'; 
+        case 'phone':
+            return 'pi pi-mobile';
+        case 'computer':
+            return 'pi pi-desktop';
+        case 'display':
+            return 'pi pi-desktop';
+        case 'tablet':
+            return 'pi pi-tablet';
+        case 'network':
+            return 'pi pi-wifi';
+        case 'printer':
+            return 'pi pi-print';
+        case 'camera':
+            return 'pi pi-camera';
+        default:
+            return 'pi pi-microchip';
+    }
+};
 </script>
 
 <template>
@@ -30,7 +64,7 @@ const {
     <div v-if="isEnabled" class="device-list">
         <LoadingState v-if="loading" />
         
-        <SettingsCard v-else-if="devices.length === 0">
+        <SettingsCard v-else-if="sortedDevices.length === 0">
              <div class="empty-state">
                 <p>No devices found</p>
             </div>
@@ -40,20 +74,24 @@ const {
              <!-- Using custom list style inside card -->
              <div class="settings-group-list">
                 <div 
-                    v-for="(dev, index) in devices" 
-                    :key="index" 
+                    v-for="(dev, index) in sortedDevices" 
+                    :key="dev.mac"
                     class="settings-item"
                     @click="connect(dev)"
                 >
                     <div class="item-icon">
-                        <i class="pi pi-bluetooth"></i>
+                        <i :class="getDeviceIcon(dev.icon)"></i>
                     </div>
                     <div class="item-details">
                         <span class="item-label">{{ dev.name || 'Unknown Device' }}</span>
                         <span class="item-sublabel">{{ dev.mac }}</span>
                     </div>
-                    <div v-if="dev.connected" class="connected-label">
-                        Connected
+                    <div v-if="dev.connected" class="connected-label" style="color: var(--accent-color); font-size: 1.2rem;">
+                        <i class="pi pi-check" style="font-weight: bold;"></i>
+                    </div>
+                    <div v-else-if="dev.mac === connectingMac" class="connecting-label">
+                        <i class="pi pi-spin pi-spinner" style="font-size: 1rem; margin-right: 5px;"></i>
+                        Connecting...
                     </div>
                     <div v-else class="action-label">
                         Connect
@@ -139,6 +177,13 @@ const {
 .connected-label {
     font-size: 12px;
     color: var(--text-secondary);
+}
+
+.connecting-label {
+    font-size: 12px;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
 }
 
 .action-label {

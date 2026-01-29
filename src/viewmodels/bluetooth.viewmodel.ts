@@ -3,7 +3,7 @@
  * Contains business logic for Bluetooth management
  */
 
-import { ref, onMounted, onUnmounted } from 'vue';
+import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { invoke } from '@tauri-apps/api/core';
 import type { BluetoothDevice } from '../models/bluetooth.model';
 import { useToast } from '../composables/useToast';
@@ -13,6 +13,19 @@ export function useBluetoothViewModel() {
     const isEnabled = ref(false);
     const devices = ref<BluetoothDevice[]>([]);
     const loading = ref(false);
+    const connectingMac = ref<string | null>(null);
+
+    // Computed property for sorted devices: Connected > Connecting > Disconnected
+    const sortedDevices = computed(() => {
+        return [...devices.value].sort((a, b) => {
+            const getRank = (device: BluetoothDevice) => {
+                if (device.connected) return 3;
+                if (device.mac === connectingMac.value) return 2;
+                return 1;
+            };
+            return getRank(b) - getRank(a);
+        });
+    });
 
     // Notifications
     const { showToast } = useToast();
@@ -76,17 +89,21 @@ export function useBluetoothViewModel() {
     };
 
     const connect = async (dev: BluetoothDevice) => {
-        if (dev.connected) return;
+        if (dev.connected || connectingMac.value) return;
 
-        loading.value = true;
+        connectingMac.value = dev.mac;
         try {
             await invoke('connect_bluetooth', { mac: dev.mac });
-            dev.connected = true;
+
+            // Update device status in the local list immediately
+            const device = devices.value.find(d => d.mac === dev.mac);
+            if (device) device.connected = true;
+
             showToast(`Connected to ${dev.name || dev.mac}`, 'success');
         } catch (e) {
             showToast(`Failed to connect to ${dev.name || dev.mac}: ` + e, 'error');
         } finally {
-            loading.value = false;
+            connectingMac.value = null;
         }
     };
 
@@ -95,7 +112,7 @@ export function useBluetoothViewModel() {
 
     const startRefreshInterval = () => {
         if (scanInterval) clearInterval(scanInterval);
-        scanInterval = setInterval(refreshDevices, 5000);
+        scanInterval = setInterval(refreshDevices, 15000);
     };
 
     const stopRefreshInterval = () => {
@@ -125,6 +142,8 @@ export function useBluetoothViewModel() {
         loading,
         toggleBluetooth,
         connect,
+        connectingMac,
+        sortedDevices,
         scan: refreshDevices // exposing as 'scan' for backward compatibility if template uses it, though we should update template
     };
 }
