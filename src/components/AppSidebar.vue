@@ -9,29 +9,29 @@ const menuGroups = [
     {
         title: 'Network',
         items: [
-            { label: 'Wi-Fi', icon: 'pi pi-wifi', path: '/wifi', color: '' },
-            { label: 'VPN', icon: 'pi pi-cloud', path: '/vpn', color: '' },
-            { label: 'Bluetooth', icon: 'pi pi-mobile', path: '/bluetooth', color: '' },
+            { label: 'Wi-Fi', icon: 'pi pi-wifi', path: '/wifi', color: '#666464' },
+            { label: 'VPN', icon: 'pi pi-cloud', path: '/vpn', color: '#666464' },
+            { label: 'Bluetooth', icon: 'pi pi-mobile', path: '/bluetooth', color: '#666464' },
         ]
     },
     {
         title: 'Personalization',
         items: [
-            { label: 'Displays', icon: 'pi pi-desktop', path: '/displays', color: '' },
-            { label: 'Appearance', icon: 'pi pi-palette', path: '/appearance', color: '' },
+            { label: 'Displays', icon: 'pi pi-desktop', path: '/displays', color: '#666464' },
+            { label: 'Appearance', icon: 'pi pi-palette', path: '/appearance', color: '#666464' },
         ]
     },
     {
         title: 'Apps',
         items: [
-            { label: 'Rules', icon: 'pi pi-cog', path: '/rules', color: '' },
-            { label: 'Startup Apps', icon: 'pi pi-objects-column', path: '/startup', color: '' },
+            { label: 'Rules', icon: 'pi pi-cog', path: '/rules', color: '#666464' },
+            { label: 'Startup Apps', icon: 'pi pi-objects-column', path: '/startup', color: '#666464' },
         ]
     },
     {
         title: 'Shortcuts',
         items: [
-            { label: 'Shortcuts', icon: 'pi pi-address-book', path: '/shortcuts', color: '' },
+            { label: 'Shortcuts', icon: 'pi pi-address-book', path: '/shortcuts', color: '#666464' },
         ]
     },
 ];
