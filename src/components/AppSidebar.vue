@@ -24,7 +24,6 @@ const menuGroups = [
     {
         title: 'Apps',
         items: [
-            { label: 'Rules', icon: 'pi pi-cog', path: '/rules', color: '#666464' },
             { label: 'Startup Apps', icon: 'pi pi-objects-column', path: '/startup', color: '#666464' },
         ]
     },

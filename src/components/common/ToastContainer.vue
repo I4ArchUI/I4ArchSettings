@@ -35,12 +35,12 @@ const { toasts, removeToast } = useToast();
 .toast-container {
     position: fixed;
     bottom: 24px;
-    right: 24px; /* Change to center if preferred: left: 50%; transform: translateX(-50%); */
+    right: 24px;
     z-index: 9999;
     display: flex;
     flex-direction: column;
     gap: 12px;
-    pointer-events: none; /* Let clicks pass through container area */
+    pointer-events: none;
 }
 
 .toast-message {
@@ -79,25 +79,6 @@ const { toasts, removeToast } = useToast();
 .toast-message.info {
     background: rgba(37, 99, 235, 0.9);
     border-color: rgba(37, 99, 235, 0.5);
-}
-
-/* Glassmorphism overrides for better aesthetics if solid colors are too strong */
-.toast-message {
-    background: rgba(30, 30, 30, 0.95);
-    border-left: 4px solid transparent;
-}
-
-.toast-message.success {
-    border-left-color: #22c55e;
-}
-.toast-message.error {
-    border-left-color: #ef4444;
-}
-.toast-message.warning {
-    border-left-color: #fbbf24;
-}
-.toast-message.info {
-    border-left-color: #3b82f6;
 }
 
 .toast-icon {
