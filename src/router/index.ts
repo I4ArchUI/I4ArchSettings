@@ -5,6 +5,7 @@ import BluetoothView from '../views/BluetoothView.vue';
 import AboutView from '../views/AboutView.vue';
 import AppearanceView from '../views/AppearanceView.vue';
 import StartupView from '../views/StartupView.vue';
+import KeybindsView from '../views/KeybindsView.vue';
 
 const routes = [
     { path: '/', redirect: '/about' },
@@ -14,6 +15,7 @@ const routes = [
     { path: '/appearance', name: 'Appearance', component: AppearanceView },
     { path: '/displays', name: 'Displays', component: DisplaysView },
     { path: '/startup', name: 'Startup Apps', component: StartupView },
+    { path: '/shortcuts', name: 'Keybinds', component: KeybindsView },
 ];
 
 const router = createRouter({
