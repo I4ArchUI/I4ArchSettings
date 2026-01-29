@@ -3,7 +3,7 @@
  * Contains business logic for Bluetooth management
  */
 
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, onUnmounted } from 'vue';
 import { invoke } from '@tauri-apps/api/core';
 import type { BluetoothDevice } from '../models/bluetooth.model';
 import { useToast } from '../composables/useToast';
@@ -26,12 +26,32 @@ export function useBluetoothViewModel() {
         }
     };
 
-    const scan = async () => {
-        loading.value = true;
+    const startScan = async () => {
         try {
-            devices.value = await invoke('scan_bluetooth');
+            await invoke('start_scan');
         } catch (e) {
-            showToast('Bluetooth scan failed: ' + e, 'error');
+            console.error("Failed to start scan:", e);
+        }
+    };
+
+    const stopScan = async () => {
+        try {
+            await invoke('stop_scan');
+        } catch (e) {
+            console.error("Failed to stop scan:", e);
+        }
+    };
+
+    const refreshDevices = async () => {
+        if (!isEnabled.value) return;
+
+        if (loading.value) return;
+
+        if (devices.value.length === 0) loading.value = true;
+
+        try {
+            devices.value = await invoke('get_bluetooth_devices');
+        } catch (e) {
         } finally {
             loading.value = false;
         }
@@ -41,8 +61,12 @@ export function useBluetoothViewModel() {
         try {
             await invoke('toggle_bluetooth', { enable: isEnabled.value });
             if (isEnabled.value) {
-                scan();
+                await startScan();
+                refreshDevices();
+                startRefreshInterval();
             } else {
+                stopScan();
+                stopRefreshInterval();
                 devices.value = [];
             }
         } catch (e) {
@@ -57,7 +81,6 @@ export function useBluetoothViewModel() {
         loading.value = true;
         try {
             await invoke('connect_bluetooth', { mac: dev.mac });
-            // Ideally re-scan or update status, here we just optimistically set connected
             dev.connected = true;
             showToast(`Connected to ${dev.name || dev.mac}`, 'success');
         } catch (e) {
@@ -68,11 +91,32 @@ export function useBluetoothViewModel() {
     };
 
     // --- Lifecycle ---
+    let scanInterval: ReturnType<typeof setInterval> | null = null;
+
+    const startRefreshInterval = () => {
+        if (scanInterval) clearInterval(scanInterval);
+        scanInterval = setInterval(refreshDevices, 5000);
+    };
+
+    const stopRefreshInterval = () => {
+        if (scanInterval) {
+            clearInterval(scanInterval);
+            scanInterval = null;
+        }
+    };
+
     onMounted(async () => {
         await checkStatus();
         if (isEnabled.value) {
-            scan();
+            await startScan();
+            refreshDevices();
+            startRefreshInterval();
         }
+    });
+
+    onUnmounted(() => {
+        stopRefreshInterval();
+        stopScan();
     });
 
     return {
@@ -81,6 +125,6 @@ export function useBluetoothViewModel() {
         loading,
         toggleBluetooth,
         connect,
-        scan
+        scan: refreshDevices // exposing as 'scan' for backward compatibility if template uses it, though we should update template
     };
 }

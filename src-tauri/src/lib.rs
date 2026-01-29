@@ -5,7 +5,8 @@ use modules::appearance::{
     get_hyprland_config, save_hyprland_config,
 };
 use modules::bluetooth::{
-    connect_bluetooth, get_bluetooth_status, scan_bluetooth, toggle_bluetooth,
+    connect_bluetooth, get_bluetooth_devices, get_bluetooth_status, start_scan, stop_scan,
+    toggle_bluetooth, BluetoothState,
 };
 use modules::display::{get_displays, save_displays};
 use modules::env::{get_env_vars, save_env_vars};
@@ -24,6 +25,7 @@ pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_dialog::init())
+        .manage(BluetoothState::new())
         .invoke_handler(tauri::generate_handler![
             get_wifi_status,
             toggle_wifi,
@@ -33,7 +35,9 @@ pub fn run() {
             set_wifi_config,
             get_bluetooth_status,
             toggle_bluetooth,
-            scan_bluetooth,
+            start_scan,
+            stop_scan,
+            get_bluetooth_devices,
             connect_bluetooth,
             get_gtk_theme,
             get_system_info,
