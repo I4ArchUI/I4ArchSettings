@@ -13,6 +13,7 @@ declare module 'vue' {
   export interface GlobalComponents {
     AppSidebar: typeof import('./components/AppSidebar.vue')['default']
     LoadingState: typeof import('./components/LoadingState.vue')['default']
+    ModalDialog: typeof import('./components/common/ModalDialog.vue')['default']
     MonitorCard: typeof import('./components/display/MonitorCard.vue')['default']
     PageLayout: typeof import('./components/common/PageLayout.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
