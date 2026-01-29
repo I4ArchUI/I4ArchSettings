@@ -1,8 +1,8 @@
-# i4archsettings
+# I4ArchSettings
 
 A modern, comprehensive settings application for Arch Linux (Hyprland environment), built with Tauri and Vue 3.
 
-> **Note:** This project was developed with significant assistance from Artificial Intelligence (~60% of the code was generated or refactored by AI).
+> **Note:** This project was developed with significant assistance from Artificial Intelligence (~60% of the code was generated or refactored by AI). BECAUSE I AM A NOOB AND I DONT KNOW ABOUT RUST :)))))
 
 ## Overview
 
