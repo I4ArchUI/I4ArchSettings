@@ -2,19 +2,19 @@ use std::fs;
 use std::path::PathBuf;
 use std::process::Command;
 
+/// Changes the Waybar position by copying configuration files from a specific theme directory.
 #[tauri::command]
 pub fn set_waybar_position(position: String) -> Result<String, String> {
     let home = std::env::var("HOME").map_err(|_| "Cannot get HOME directory".to_string())?;
     let waybar_config_dir = PathBuf::from(&home).join(".config/waybar");
     let position_dir = waybar_config_dir.join("themes").join(&position);
 
-    // Kiểm tra xem thư mục position có tồn tại không
+    // Verify the target position directory exists
     if !position_dir.exists() {
-        let err = format!("Position directory '{}' does not exist", position);
-        return Err(err);
+        return Err(format!("Position directory '{}' does not exist", position));
     }
 
-    // Copy config.jsonc
+    // Deploy config.jsonc
     let config_src = position_dir.join("config.jsonc");
     let config_dest = waybar_config_dir.join("config.jsonc");
 
@@ -25,7 +25,7 @@ pub fn set_waybar_position(position: String) -> Result<String, String> {
         return Err(format!("config.jsonc not found in {}", position));
     }
 
-    // Copy style.css
+    // Deploy style.css
     let style_src = position_dir.join("style.css");
     let style_dest = waybar_config_dir.join("style.css");
 
@@ -41,6 +41,7 @@ pub fn set_waybar_position(position: String) -> Result<String, String> {
     Ok(format!("Waybar position changed to {}", position))
 }
 
+/// Restarts the Waybar process to apply configuration changes.
 fn reload_waybar() -> Result<(), String> {
     let _ = Command::new("pkill").arg("waybar").output();
     std::thread::sleep(std::time::Duration::from_millis(300));
@@ -53,6 +54,7 @@ fn reload_waybar() -> Result<(), String> {
     Ok(())
 }
 
+/// Parses the current Waybar configuration to determine its active screen position.
 #[tauri::command]
 pub fn get_waybar_position() -> Result<String, String> {
     let home = std::env::var("HOME").map_err(|_| "Cannot get HOME directory".to_string())?;
@@ -60,14 +62,13 @@ pub fn get_waybar_position() -> Result<String, String> {
     let config_file = waybar_config_dir.join("config.jsonc");
 
     if !config_file.exists() {
-        return Ok("top".to_string()); // Default
+        return Ok("top".to_string());
     }
 
     let content =
         fs::read_to_string(&config_file).map_err(|e| format!("Failed to read config: {}", e))?;
 
-    // Tìm position trong config
-    // Tìm dòng có "position": "xxx"
+    // Search for the "position" field in the configuration
     for line in content.lines() {
         if line.contains("\"position\"") {
             if line.contains("\"top\"") {
@@ -82,5 +83,5 @@ pub fn get_waybar_position() -> Result<String, String> {
         }
     }
 
-    Ok("top".to_string()) // Default
+    Ok("top".to_string())
 }

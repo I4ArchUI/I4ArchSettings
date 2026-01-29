@@ -2,10 +2,12 @@ use std::env;
 use std::fs;
 use std::path::Path;
 
+/// Returns the user's home directory, defaulting to a specific path if HOME is not set.
 fn get_home_dir() -> String {
     env::var("HOME").unwrap_or_else(|_| "/home/i4104".to_string())
 }
 
+/// Retrieves list of startup commands from Hyprland config.
 #[tauri::command]
 pub fn get_startup_commands() -> Vec<String> {
     let home = get_home_dir();
@@ -25,12 +27,13 @@ pub fn get_startup_commands() -> Vec<String> {
     commands
 }
 
+/// Saves startup commands to the Hyprland configuration file.
 #[tauri::command]
 pub fn save_startup_commands(commands: Vec<String>) -> Result<(), String> {
     let home = get_home_dir();
     let config_path = Path::new(&home).join(".config/hypr/exec.conf");
 
-    // Ensure directory exists
+    // Ensure the config directory exists
     if let Some(parent) = config_path.parent() {
         let _ = fs::create_dir_all(parent);
     }

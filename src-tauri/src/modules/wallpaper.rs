@@ -1,13 +1,13 @@
 use std::process::Command;
 
+/// Sets the desktop wallpaper by copying the file to a standard location and using swww.
 #[tauri::command]
 pub fn set_wallpaper(file_path: String) -> Result<(), String> {
     if file_path.is_empty() {
         return Err("File path is empty".to_string());
     }
 
-    // Prepare the script
-    // Using sh -c to allow ~ expansion for destination and swww command execution
+    // Execute script to copy the wallpaper and update swww
     let script = format!(
         r#"
         mkdir -p ~/.config/hypr/themes
@@ -31,12 +31,14 @@ pub fn set_wallpaper(file_path: String) -> Result<(), String> {
     Ok(())
 }
 
+/// Returns the standard path where the current wallpaper is stored.
 #[tauri::command]
 pub fn get_current_wallpaper_path() -> String {
     let home = std::env::var("HOME").unwrap_or_default();
     format!("{}/.config/hypr/themes/background.png", home)
 }
 
+/// Reads the current wallpaper file and returns its content as a Base64 encoded string.
 #[tauri::command]
 pub fn get_wallpaper_base64() -> Result<String, String> {
     use base64::{engine::general_purpose, Engine as _};

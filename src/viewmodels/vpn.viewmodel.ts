@@ -1,36 +1,36 @@
-/**
- * VPN ViewModel (Composable)
- */
-
 import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { invoke } from '@tauri-apps/api/core';
 import { open } from '@tauri-apps/plugin-dialog';
 import type { VpnConnection } from '../models/vpn.model';
 import { useToast } from '../composables/useToast';
 
+/**
+ * ViewModel for managing VPN connections.
+ * Handles fetching, connecting, disconnecting, and importing VPN configurations.
+ */
 export function useVpnViewModel() {
     // --- State ---
     const connections = ref<VpnConnection[]>([]);
     const loading = ref(false);
-
-    // For tracking ongoing connection attempts
     const connectingUuid = ref<string | null>(null);
 
-    // Add VPN Modal State
+    // Modal and form state for adding new connections
     const showAddModal = ref(false);
     const formData = ref({
-        type: 'openvpn', // default
+        type: 'openvpn',
         filePath: '',
         username: '',
         password: ''
     });
 
-    // Notifications
     const { showToast } = useToast();
 
     // --- Computed ---
+
+    /**
+     * Connections sorted by status (Active > Connecting > Inactive) and then by name.
+     */
     const sortedConnections = computed(() => {
-        // Sort: Active first, then connecting, then name
         return [...connections.value].sort((a, b) => {
             const getRank = (conn: VpnConnection) => {
                 if (conn.active) return 3;
@@ -47,14 +47,10 @@ export function useVpnViewModel() {
 
     // --- Actions ---
 
+    /**
+     * Fetches the current list of VPN connections from the backend.
+     */
     const fetchConnections = async () => {
-        // If initial load or not refreshed recently
-        if (loading.value && connections.value.length === 0) {
-            // keep loading true
-        } else {
-            // loading.value = true; // Optional: don't flicker loading on refresh
-        }
-
         try {
             connections.value = await invoke('get_vpn_connections');
         } catch (e) {
@@ -64,6 +60,9 @@ export function useVpnViewModel() {
         }
     };
 
+    /**
+     * Connects to a specific VPN connection.
+     */
     const connect = async (conn: VpnConnection) => {
         if (conn.active || connectingUuid.value) return;
 
@@ -71,7 +70,6 @@ export function useVpnViewModel() {
         try {
             await invoke('connect_vpn', { uuid: conn.uuid });
             showToast(`Connected to ${conn.name}`, 'success');
-            // Optimistic update or refresh
             conn.active = true;
             fetchConnections();
         } catch (e) {
@@ -81,10 +79,12 @@ export function useVpnViewModel() {
         }
     };
 
+    /**
+     * Disconnects an active VPN connection.
+     */
     const disconnect = async (conn: VpnConnection) => {
         if (!conn.active) return;
 
-        // We could track disconnecting state similarly if needed
         try {
             await invoke('disconnect_vpn', { uuid: conn.uuid });
             showToast(`Disconnected from ${conn.name}`, 'success');
@@ -95,6 +95,9 @@ export function useVpnViewModel() {
         }
     };
 
+    /**
+     * Toggles the connection state (Connect/Disconnect).
+     */
     const toggleConnection = async (conn: VpnConnection) => {
         if (conn.active) {
             await disconnect(conn);
@@ -103,6 +106,9 @@ export function useVpnViewModel() {
         }
     };
 
+    /**
+     * Opens the modal to add a new VPN connection.
+     */
     const openAddModal = () => {
         formData.value = {
             type: 'openvpn',
@@ -113,6 +119,9 @@ export function useVpnViewModel() {
         showAddModal.value = true;
     };
 
+    /**
+     * Opens a file picker to select a VPN configuration file.
+     */
     const pickFile = async () => {
         try {
             const selected = await open({
@@ -128,7 +137,7 @@ export function useVpnViewModel() {
                 if (path) {
                     formData.value.filePath = path;
 
-                    // Auto-detect type
+                    // Auto-detect VPN type based on file extension
                     if (path.endsWith('.conf') || path.endsWith('.wg')) {
                         formData.value.type = 'wireguard';
                     } else if (path.endsWith('.ovpn')) {
@@ -141,6 +150,9 @@ export function useVpnViewModel() {
         }
     };
 
+    /**
+     * Saves the current form data as a new VPN connection.
+     */
     const saveConnection = async () => {
         if (!formData.value.filePath) {
             showToast('Please select a configuration file', 'error');
@@ -169,8 +181,8 @@ export function useVpnViewModel() {
     onMounted(async () => {
         loading.value = true;
         await fetchConnections();
-
-        refreshInterval = setInterval(fetchConnections, 5000); // Auto refresh status
+        // Periodically refresh connection status
+        refreshInterval = setInterval(fetchConnections, 5000);
     });
 
     onUnmounted(() => {

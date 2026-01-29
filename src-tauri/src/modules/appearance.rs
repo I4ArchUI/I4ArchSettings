@@ -4,12 +4,14 @@ use std::fs;
 use std::path::Path;
 use std::process::Command;
 
+/// Metadata for a system theme.
 #[derive(Serialize)]
 pub struct ThemeInfo {
     name: String,
     path: String,
 }
 
+/// Global appearance state of the desktop environment.
 #[derive(Serialize)]
 pub struct AppearanceState {
     pub cursor_theme: String,
@@ -18,10 +20,12 @@ pub struct AppearanceState {
     pub color_scheme: String,
 }
 
+/// Retrieves the user's home directory path.
 fn get_home_dir() -> String {
     env::var("HOME").unwrap_or_else(|_| "/home/i4104".to_string())
 }
 
+/// Lists all available cursor themes from the user's .icons directory.
 #[tauri::command]
 pub fn get_cursor_themes() -> Vec<ThemeInfo> {
     let home = get_home_dir();
@@ -35,8 +39,7 @@ pub fn get_cursor_themes() -> Vec<ThemeInfo> {
                     if metadata.is_dir() {
                         let path = entry.path();
                         let dir_name = entry.file_name().to_string_lossy().to_string();
-                        // Cursor themes MUST have a 'cursors' directory.
-                        // Just checking index.theme is not enough as icon themes also have it.
+                        // A valid cursor theme must contain a 'cursors' subdirectory
                         if path.join("cursors").exists() {
                             themes.push(ThemeInfo {
                                 name: dir_name,
@@ -51,6 +54,7 @@ pub fn get_cursor_themes() -> Vec<ThemeInfo> {
     themes
 }
 
+/// Lists all available GTK themes from the user's .themes directory.
 #[tauri::command]
 pub fn get_gtk_themes_list() -> Vec<ThemeInfo> {
     let home = get_home_dir();
@@ -64,7 +68,7 @@ pub fn get_gtk_themes_list() -> Vec<ThemeInfo> {
                     if metadata.is_dir() {
                         let path = entry.path();
                         let dir_name = entry.file_name().to_string_lossy().to_string();
-                        // Basic check for gtk-3.0 or index.theme
+                        // Basic check for GTK theme validity
                         if path.join("gtk-3.0").exists() || path.join("index.theme").exists() {
                             themes.push(ThemeInfo {
                                 name: dir_name,
@@ -79,6 +83,7 @@ pub fn get_gtk_themes_list() -> Vec<ThemeInfo> {
     themes
 }
 
+/// Applies appearance connections to GSettings and Hyprland config files.
 #[tauri::command]
 pub fn apply_appearance_conf(
     cursor_theme: String,
@@ -92,7 +97,7 @@ pub fn apply_appearance_conf(
         "prefer-light"
     };
 
-    // 1. Run commands immediately
+    // Update system settings via gsettings
     let cmds = vec![
         vec![
             "gsettings",
@@ -128,14 +133,14 @@ pub fn apply_appearance_conf(
         let _ = Command::new(cmd[0]).args(&cmd[1..]).output();
     }
 
-    // hyprctl setcursor
+    // Update current active cursor in Hyprland
     let _ = Command::new("hyprctl")
         .arg("setcursor")
         .arg(&cursor_theme)
         .arg(cursor_size.to_string())
         .output();
 
-    // 2. Write to theme.conf
+    // Persist settings to theme config file
     let home = get_home_dir();
     let config_path = Path::new(&home).join(".config/hypr/themes/theme.conf");
 
@@ -159,6 +164,7 @@ pub fn apply_appearance_conf(
     Ok(())
 }
 
+/// Executes a shell command and returns the trimmed standard output.
 fn run_cmd_output(cmd: &str, args: &[&str]) -> String {
     Command::new(cmd)
         .args(args)
@@ -172,23 +178,23 @@ fn run_cmd_output(cmd: &str, args: &[&str]) -> String {
         .unwrap_or_default()
 }
 
+/// Retrieves the current system appearance configuration.
 #[tauri::command]
 pub fn get_current_appearance_config() -> AppearanceState {
-    // Attempt to read from gsettings for accuracy of current state
     let cursor_theme = run_cmd_output(
         "gsettings",
-        &["get", "org.gnome.desktop.interface", "cursor-theme"],
+        &["get", "org.gnome.desktop.interface", "cursor-theme"][..],
     );
     let gtk_theme = run_cmd_output(
         "gsettings",
-        &["get", "org.gnome.desktop.interface", "gtk-theme"],
+        &["get", "org.gnome.desktop.interface", "gtk-theme"][..],
     );
     let color_scheme_raw = run_cmd_output(
         "gsettings",
-        &["get", "org.gnome.desktop.interface", "color-scheme"],
+        &["get", "org.gnome.desktop.interface", "color-scheme"][..],
     );
 
-    // Parse cursor size from theme.conf because system doesn't always expose it easily in a standard way across hyprland
+    // Read cursor size from theme configuration as it might not be reachable via system APIs
     let mut cursor_size = 24;
     let home = get_home_dir();
     let config_path = Path::new(&home).join(".config/hypr/themes/theme.conf");
@@ -196,7 +202,6 @@ pub fn get_current_appearance_config() -> AppearanceState {
     if let Ok(content) = fs::read_to_string(config_path) {
         for line in content.lines() {
             if line.contains("hyprctl setcursor") {
-                // exec = hyprctl setcursor ThemeName Size
                 let parts: Vec<&str> = line.split_whitespace().collect();
                 if let Some(size_str) = parts.last() {
                     if let Ok(s) = size_str.parse::<u32>() {
@@ -222,6 +227,8 @@ pub fn get_current_appearance_config() -> AppearanceState {
         color_scheme: color_scheme_raw,
     }
 }
+
+/// Configuration structure for Hyprland aesthetics.
 #[derive(Serialize, serde::Deserialize, Debug, Clone)]
 pub struct HyprlandConfig {
     pub gaps_in: i32,
@@ -253,7 +260,7 @@ impl Default for HyprlandConfig {
     }
 }
 
-// Simple parser for the specific subset of keys we care about
+/// Helper function to parse a value for a specific key from a config-style string.
 fn parse_value<T: std::str::FromStr>(content: &str, key: &str) -> Option<T> {
     for line in content.lines() {
         let trim = line.trim();
@@ -269,6 +276,7 @@ fn parse_value<T: std::str::FromStr>(content: &str, key: &str) -> Option<T> {
     None
 }
 
+/// Retrieves aesthetic settings from the Hyprland theme configuration.
 #[tauri::command]
 pub fn get_hyprland_config() -> HyprlandConfig {
     let home = get_home_dir();
@@ -276,8 +284,6 @@ pub fn get_hyprland_config() -> HyprlandConfig {
     let mut config = HyprlandConfig::default();
 
     if let Ok(content) = fs::read_to_string(config_path) {
-        // Use general parser for simple keys
-        // We use extract_sections to isolate blocks for safety
         let sections = extract_sections(&content);
 
         if let Some(general) = sections.get("general") {
@@ -303,8 +309,6 @@ pub fn get_hyprland_config() -> HyprlandConfig {
                 config.inactive_opacity = v;
             }
 
-            // Nested blur?
-            // "blur {" inside decoration
             if let Some(blur_block) = extract_block(decoration, "blur") {
                 if let Some(v) = parse_value(&blur_block, "enabled") {
                     config.blur_enabled = v;
@@ -330,6 +334,7 @@ pub fn get_hyprland_config() -> HyprlandConfig {
 
 use std::collections::HashMap;
 
+/// Breaks a Hyprland configuration string into its top-level sections.
 fn extract_sections(content: &str) -> HashMap<String, String> {
     let mut sections = HashMap::new();
     let mut current_section = String::new();
@@ -345,7 +350,6 @@ fn extract_sections(content: &str) -> HashMap<String, String> {
 
         if trim.ends_with('{') {
             if !in_section {
-                // new top level section
                 if let Some(name) = trim.split_whitespace().next() {
                     current_section = name.to_string();
                     current_content.clear();
@@ -353,7 +357,6 @@ fn extract_sections(content: &str) -> HashMap<String, String> {
                     brace_count = 1;
                 }
             } else {
-                // nested block
                 brace_count += 1;
                 current_content.push_str(line);
                 current_content.push('\n');
@@ -377,6 +380,7 @@ fn extract_sections(content: &str) -> HashMap<String, String> {
     sections
 }
 
+/// Extracts the content of a nested block from a parent content string.
 fn extract_block(parent_content: &str, block_name: &str) -> Option<String> {
     let mut content = String::new();
     let mut capture = false;
@@ -410,6 +414,7 @@ fn extract_block(parent_content: &str, block_name: &str) -> Option<String> {
     }
 }
 
+/// Saves aesthetic settings to the Hyprland theme configuration file.
 #[tauri::command]
 pub fn save_hyprland_config(config: HyprlandConfig) -> Result<(), String> {
     let content = format!(
@@ -483,7 +488,7 @@ misc {{
 
     fs::write(config_path, content).map_err(|e| e.to_string())?;
 
-    // Reload Hyprland
+    // Reload Hyprland to apply changes immediately
     let _ = Command::new("hyprctl").arg("reload").output();
 
     Ok(())

@@ -1,6 +1,7 @@
 use serde::{Deserialize, Serialize};
 use tokio::process::Command;
 
+/// Represents a VPN connection with its metadata.
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct VpnConnection {
     pub uuid: String,
@@ -9,6 +10,7 @@ pub struct VpnConnection {
     pub type_name: String, // e.g. "wireguard", "openvpn"
 }
 
+/// Retrieves a list of configured VPN connections using nmcli.
 #[tauri::command]
 pub async fn get_vpn_connections() -> Result<Vec<VpnConnection>, String> {
     // nmcli -t -f UUID,NAME,TYPE,ACTIVE connection show
@@ -23,35 +25,15 @@ pub async fn get_vpn_connections() -> Result<Vec<VpnConnection>, String> {
 
     for line in stdout.lines() {
         let parts: Vec<&str> = line.split(':').collect();
-        // UUID:NAME:TYPE:ACTIVE (active is yes/no or color coded in some versions, but -t should be clean)
-        // Actually ACTIVE might be the device name or similar in some modes, but usually "yes"/"no" or connection state.
-        // Let's check `nmcli` docs or standard output.
-        // `nmcli -t -f ACTIVE connection show` usually returns "yes"/"no" or depending on version.
-        // Wait, standard `nmcli connection show` lists configured connections.
-        // UUID,NAME,TYPE,ACTIVE might not be perfectly aligned if restricted to VPN.
-        // TYPE for vpn is usually "vpn" or "wireguard".
-
         if parts.len() >= 4 {
             let uuid = parts[0].to_string();
             let name = parts[1].to_string();
             let conn_type = parts[2].to_string();
-            let active_str = parts[3]; // "yes" or "no" usually, or the device name if active.
+            let active_str = parts[3];
 
-            // Filter for VPNs. Wireguard is often "wireguard", others are "vpn" (openvpn, etc).
+            // Filter for VPN and WireGuard connections
             if conn_type == "vpn" || conn_type == "wireguard" {
-                // Check if active. "yes", or colored output avoided by -t?
-                // Usually with -t, it's just value.
-                // Actually, checking if active can be tricky. using connection show --active can serve as cross reference.
-                // But let's assume `ACTIVE` field returns "yes" or similar.
-                // In some versions, ACTIVE field is the interface name (e.g. "tun0") if active, nothing if not?
-                // Let's try to interpret "yes" or any non-empty/non-no string as potentially active, but let's be careful.
-                // Actually, simpler: nmcli -t -f UUID,NAME,TYPE,DEVICE connection show
-                // DEVICE will be "--" if not active, or device name if active.
-
-                // Let's stick to what I wrote above but double check active logic.
-                // I will assume standard: green/yes means active.
-                // safe bet: active_str != "--" && active_str != "no"
-
+                // Determine active status: active_str is usually "--" or "no" if inactive
                 let active = active_str != "no" && active_str != "--" && !active_str.is_empty();
 
                 vpns.push(VpnConnection {
@@ -64,12 +46,13 @@ pub async fn get_vpn_connections() -> Result<Vec<VpnConnection>, String> {
         }
     }
 
-    // Sort active first
+    // Sort active connections to the top
     vpns.sort_by(|a, b| b.active.cmp(&a.active));
 
     Ok(vpns)
 }
 
+/// Activates a VPN connection by its UUID.
 #[tauri::command]
 pub async fn connect_vpn(uuid: String) -> Result<(), String> {
     let output = Command::new("nmcli")
@@ -85,6 +68,7 @@ pub async fn connect_vpn(uuid: String) -> Result<(), String> {
     }
 }
 
+/// Deactivates an active VPN connection by its UUID.
 #[tauri::command]
 pub async fn disconnect_vpn(uuid: String) -> Result<(), String> {
     let output = Command::new("nmcli")
@@ -100,6 +84,7 @@ pub async fn disconnect_vpn(uuid: String) -> Result<(), String> {
     }
 }
 
+/// Imports a VPN configuration file and optionally sets credentials.
 #[tauri::command]
 pub async fn import_vpn(
     file_path: String,
@@ -107,11 +92,10 @@ pub async fn import_vpn(
     username: Option<String>,
     password: Option<String>,
 ) -> Result<String, String> {
-    // Determine type
+    // Detect VPN type if not provided
     let type_str = if let Some(t) = vpn_type {
         t
     } else {
-        // Simple heuristic fallback
         if file_path.ends_with(".ovpn") {
             "openvpn".to_string()
         } else if file_path.ends_with(".conf") || file_path.ends_with(".wg") {
@@ -121,7 +105,7 @@ pub async fn import_vpn(
         }
     };
 
-    // 1. Import
+    // Import the configuration using nmcli
     let output = Command::new("nmcli")
         .args(&[
             "connection",
@@ -140,27 +124,17 @@ pub async fn import_vpn(
     }
 
     let stdout = String::from_utf8_lossy(&output.stdout).to_string();
-    // Expected stdout: "Connection 'Details' (UUID) successfully added."
 
-    // 2. If username/password provided (Mainly for OpenVPN), modify connection
+    // If credentials are provided for OpenVPN, modify the connection properties
     if (username.is_some() || password.is_some()) && type_str == "openvpn" {
-        // Extract UUID
-        // Find substring between '(' and ')'
+        // Extract UUID from nmcli output: "Connection '...' (UUID) successfully added."
         if let Some(start_idx) = stdout.rfind('(') {
             if let Some(end_idx) = stdout.rfind(')') {
                 if start_idx < end_idx {
                     let uuid = &stdout[start_idx + 1..end_idx];
 
-                    // Modify Username
+                    // Set Username
                     if let Some(user) = username {
-                        // vpn.user-name for openvpn is common, or vpn.data username=... depending on plugin version.
-                        // Modern NM OpenVPN uses +vpn.data username=...
-                        // Let's try `vpn.user-name` property first if it exists as a direct property,
-                        // but typically `nmcli connection modify <uuid> +vpn.data username=<user>` is the robust way for plugins.
-                        // Double check: `nmcli -f vpn.data connection show <uuid>`
-                        // Actually, standard property is often `vpn.user-name` on recent NM.
-                        // Let's try generic `+vpn.data username=...` as it's safe for the plugin metadata.
-
                         let _ = Command::new("nmcli")
                             .args(&[
                                 "connection",
@@ -173,10 +147,8 @@ pub async fn import_vpn(
                             .await;
                     }
 
-                    // Modify Password
+                    // Set Password and fix secret storage flags
                     if let Some(pass) = password {
-                        // +vpn.secrets password=...
-                        // Also set flags to 0 (save)
                         let _ = Command::new("nmcli")
                             .args(&[
                                 "connection",
