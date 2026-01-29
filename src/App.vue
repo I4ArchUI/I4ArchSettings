@@ -13,9 +13,7 @@ const updateTheme = async () => {
     } else {
       document.documentElement.classList.remove('dark');
     }
-  } catch (e) {
-    console.error("Failed to get theme:", e);
-  }
+  } catch (e) {}
 };
 
 let themeInterval: any;

@@ -14,8 +14,10 @@ declare module 'vue' {
     AppSidebar: typeof import('./components/AppSidebar.vue')['default']
     LoadingState: typeof import('./components/LoadingState.vue')['default']
     MonitorCard: typeof import('./components/display/MonitorCard.vue')['default']
+    PageLayout: typeof import('./components/common/PageLayout.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
+    SettingsCard: typeof import('./components/common/SettingsCard.vue')['default']
     ToastContainer: typeof import('./components/common/ToastContainer.vue')['default']
     WifiConfigModal: typeof import('./components/wifi/WifiConfigModal.vue')['default']
   }

@@ -66,7 +66,6 @@ export function useKeybindsViewModel() {
                 };
             });
         } catch (e: any) {
-            console.error('Failed to load keybinds:', e);
             showToast('Failed to load keybinds', 'error');
         } finally {
             loading.value = false;
@@ -91,7 +90,7 @@ export function useKeybindsViewModel() {
     };
 
     const addKeybind = () => {
-        keybinds.value.push({
+        keybinds.value.unshift({
             id: `new-${Date.now()}`,
             bind_type: 'bind',
             modifiers: 'SUPER',

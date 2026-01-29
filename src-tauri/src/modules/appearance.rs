@@ -410,12 +410,6 @@ fn extract_block(parent_content: &str, block_name: &str) -> Option<String> {
 
 #[tauri::command]
 pub fn save_hyprland_config(config: HyprlandConfig) -> Result<(), String> {
-    // We recreate the file content based on the struct because the user
-    // gave us a template and we want to control these values.
-    // Preserving other values would be ideal but parsing/replacing is complex.
-    // Given the request "This is the file... Add to appearance so I can customize",
-    // it's safer to rewrite with the structure provided.
-
     let content = format!(
         r#"general {{
     gaps_in = {}

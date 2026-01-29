@@ -32,7 +32,6 @@ export function useDisplayViewModel() {
                 mirror: m.mirror !== undefined ? m.mirror : null
             }));
         } catch (error) {
-            console.error('Failed to fetch monitors:', error);
             showToast('Failed to fetch monitors: ' + error, 'error');
         } finally {
             loading.value = false;
@@ -133,7 +132,6 @@ export function useDisplayViewModel() {
 
             showToast('Settings saved to ~/.config/hypr/configs/monitors.conf', 'success');
         } catch (error) {
-            console.error('Failed to save settings:', error);
             showToast('Failed to save settings: ' + error, 'error');
         } finally {
             loading.value = false;
