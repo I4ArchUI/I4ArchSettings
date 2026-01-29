@@ -6,6 +6,7 @@ pub mod keybinds;
 pub mod settings;
 pub mod startup;
 pub mod system;
+pub mod vpn;
 pub mod wallpaper;
 pub mod waybar;
 pub mod wifi;
