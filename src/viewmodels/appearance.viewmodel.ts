@@ -31,6 +31,20 @@ export function useAppearanceViewModel() {
     // Common cursor sizes
     const cursorSizes = [16, 20, 22, 24, 28, 32, 36, 40, 48, 64];
 
+    // --- Hyprland Config State ---
+    const hyprlandConfig = ref<any>({
+        gaps_in: 5,
+        gaps_out: 5,
+        border_size: 1,
+        rounding: 10,
+        active_opacity: 1.0,
+        inactive_opacity: 1.0,
+        blur_enabled: true,
+        blur_size: 1,
+        blur_passes: 1,
+        disable_logo: true
+    });
+
     // --- Actions ---
 
     // Load initial data
@@ -50,12 +64,14 @@ export function useAppearanceViewModel() {
 
             selectedCursorTheme.value = config.cursor_theme;
             selectedCursorSize.value = config.cursor_size || 24;
-            selectedGtkTheme.value = config.gtk_theme; // Note: user requested filtering from .themes, but current might be system default not in that folder.
+            selectedGtkTheme.value = config.gtk_theme;
 
-            // Sync dark mode state if needed (optional, as we already have settings logic)
-            // But we should respect what the backend says the *actual* system state is
+            // Sync dark mode state
             isDark.value = config.color_scheme === 'prefer-dark';
             applyThemeClass(isDark.value);
+
+            // Load Hyprland Config
+            hyprlandConfig.value = await invoke('get_hyprland_config');
 
         } catch (e) {
             console.error('Failed to load appearance data:', e);
@@ -78,6 +94,31 @@ export function useAppearanceViewModel() {
             showToast('Failed to apply settings: ' + e, 'error');
         }
     };
+
+    const applyHyprlandConfig = async () => {
+        try {
+            // Convert string values back to numbers if necessary (input type="number" returns numbers usually but safe to cast)
+            await invoke('save_hyprland_config', {
+                config: {
+                    gaps_in: Number(hyprlandConfig.value.gaps_in),
+                    gaps_out: Number(hyprlandConfig.value.gaps_out),
+                    border_size: Number(hyprlandConfig.value.border_size),
+                    rounding: Number(hyprlandConfig.value.rounding),
+                    active_opacity: Number(hyprlandConfig.value.active_opacity),
+                    inactive_opacity: Number(hyprlandConfig.value.inactive_opacity),
+                    blur_enabled: hyprlandConfig.value.blur_enabled,
+                    blur_size: Number(hyprlandConfig.value.blur_size),
+                    blur_passes: Number(hyprlandConfig.value.blur_passes),
+                    disable_logo: hyprlandConfig.value.disable_logo
+                }
+            });
+            showToast('Window settings saved', 'success');
+        } catch (e: any) {
+            console.error('Failed to save hyprland config:', e);
+            showToast('Failed to save window settings: ' + e, 'error');
+        }
+    };
+
 
     // Theme Logic
     const toggleTheme = async () => {
@@ -208,12 +249,14 @@ export function useAppearanceViewModel() {
         selectedCursorSize,
         selectedGtkTheme,
         cursorSizes,
+        hyprlandConfig,
 
         // Actions
         toggleTheme,
         pickWallpaper,
         handleImageError,
         setWaybarPosition,
-        applyAppearanceSettings
+        applyAppearanceSettings,
+        applyHyprlandConfig
     };
 }

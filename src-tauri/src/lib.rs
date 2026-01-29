@@ -2,6 +2,7 @@ mod modules;
 
 use modules::appearance::{
     apply_appearance_conf, get_current_appearance_config, get_cursor_themes, get_gtk_themes_list,
+    get_hyprland_config, save_hyprland_config,
 };
 use modules::bluetooth::{
     connect_bluetooth, get_bluetooth_status, scan_bluetooth, toggle_bluetooth,
@@ -45,7 +46,9 @@ pub fn run() {
             get_cursor_themes,
             get_gtk_themes_list,
             apply_appearance_conf,
-            get_current_appearance_config
+            get_current_appearance_config,
+            get_hyprland_config,
+            save_hyprland_config
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

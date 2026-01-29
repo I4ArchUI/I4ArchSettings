@@ -17,7 +17,9 @@ const {
     selectedCursorSize,
     selectedGtkTheme,
     cursorSizes,
-    applyAppearanceSettings
+    applyAppearanceSettings,
+    hyprlandConfig,
+    applyHyprlandConfig
 } = useAppearanceViewModel();
 </script>
 
@@ -46,6 +48,56 @@ const {
                 </div>
             </div>
 
+            <!-- Taskbar Position Card -->
+            <div class="taskbar-card">
+                <div class="taskbar-header">
+                    <div class="info-icon-wrapper">
+                        <i class="pi pi-window-maximize"></i>
+                    </div>
+                    <div class="info-content-text">
+                        <h3 class="info-title">Taskbar Position</h3>
+                    </div>
+                </div>
+                <div class="position-buttons">
+                    <button 
+                        class="position-btn" 
+                        :class="{ active: waybarPosition === 'top' }"
+                        @click="setWaybarPosition('top')"
+                        :disabled="changingPosition"
+                    >
+                        <i class="pi pi-arrow-up"></i>
+                        <span>Top</span>
+                    </button>
+                    <button 
+                        class="position-btn" 
+                        :class="{ active: waybarPosition === 'left' }"
+                        @click="setWaybarPosition('left')"
+                        :disabled="changingPosition"
+                    >
+                        <i class="pi pi-arrow-left"></i>
+                        <span>Left</span>
+                    </button>
+                    <button 
+                        class="position-btn" 
+                        :class="{ active: waybarPosition === 'right' }"
+                        @click="setWaybarPosition('right')"
+                        :disabled="changingPosition"
+                    >
+                        <i class="pi pi-arrow-right"></i>
+                        <span>Right</span>
+                    </button>
+                    <button 
+                        class="position-btn" 
+                        :class="{ active: waybarPosition === 'bottom' }"
+                        @click="setWaybarPosition('bottom')"
+                        :disabled="changingPosition"
+                    >
+                        <i class="pi pi-arrow-down"></i>
+                        <span>Bottom</span>
+                    </button>
+                </div>
+            </div>
+            
             <!-- Theme Card -->
             <div class="theme-card">
                 <div class="theme-content">
@@ -107,54 +159,90 @@ const {
                 </div>
             </div>
 
-            <!-- Taskbar Position Card -->
-            <div class="taskbar-card">
-                <div class="taskbar-header">
+            <!-- Window Strategy (Hyprland General) -->
+            <div class="settings-card">
+                <div class="card-header">
                     <div class="info-icon-wrapper">
-                        <i class="pi pi-window-maximize"></i>
+                        <i class="pi pi-th-large"></i>
                     </div>
                     <div class="info-content-text">
-                        <h3 class="info-title">Taskbar Position</h3>
+                        <h3 class="info-title">Window Layout</h3>
+                    </div>
+                    <button class="primary-btn small-btn" @click="applyHyprlandConfig" style="margin-left: auto;">
+                        <i class="pi pi-save"></i> Apply
+                    </button>
+                </div>
+                
+                <div class="settings-grid">
+                    <div class="setting-control">
+                        <label class="setting-label">Gaps In ({{ hyprlandConfig.gaps_in }}px)</label>
+                        <input type="range" class="slider-input" v-model="hyprlandConfig.gaps_in" min="0" max="50">
+                    </div>
+                    <div class="setting-control">
+                        <label class="setting-label">Gaps Out ({{ hyprlandConfig.gaps_out }}px)</label>
+                        <input type="range" class="slider-input" v-model="hyprlandConfig.gaps_out" min="0" max="50">
+                    </div>
+                    <div class="setting-control">
+                        <label class="setting-label">Border Size ({{ hyprlandConfig.border_size }}px)</label>
+                        <input type="range" class="slider-input" v-model="hyprlandConfig.border_size" min="0" max="10">
+                    </div>
+                    <div class="setting-control">
+                        <label class="setting-label">Rounding ({{ hyprlandConfig.rounding }}px)</label>
+                        <input type="range" class="slider-input" v-model="hyprlandConfig.rounding" min="0" max="30">
+                    </div>
+                     <div class="setting-control">
+                        <label class="setting-label">Active Opacity ({{ hyprlandConfig.active_opacity }})</label>
+                        <input type="range" class="slider-input" v-model="hyprlandConfig.active_opacity" min="0.1" max="1.0" step="0.05">
+                    </div>
+                    <div class="setting-control">
+                        <label class="setting-label">Inactive Opacity ({{ hyprlandConfig.inactive_opacity }})</label>
+                        <input type="range" class="slider-input" v-model="hyprlandConfig.inactive_opacity" min="0.1" max="1.0" step="0.05">
                     </div>
                 </div>
-                <div class="position-buttons">
-                    <button 
-                        class="position-btn" 
-                        :class="{ active: waybarPosition === 'top' }"
-                        @click="setWaybarPosition('top')"
-                        :disabled="changingPosition"
-                    >
-                        <i class="pi pi-arrow-up"></i>
-                        <span>Top</span>
-                    </button>
-                    <button 
-                        class="position-btn" 
-                        :class="{ active: waybarPosition === 'left' }"
-                        @click="setWaybarPosition('left')"
-                        :disabled="changingPosition"
-                    >
-                        <i class="pi pi-arrow-left"></i>
-                        <span>Left</span>
-                    </button>
-                    <button 
-                        class="position-btn" 
-                        :class="{ active: waybarPosition === 'right' }"
-                        @click="setWaybarPosition('right')"
-                        :disabled="changingPosition"
-                    >
-                        <i class="pi pi-arrow-right"></i>
-                        <span>Right</span>
-                    </button>
-                    <button 
-                        class="position-btn" 
-                        :class="{ active: waybarPosition === 'bottom' }"
-                        @click="setWaybarPosition('bottom')"
-                        :disabled="changingPosition"
-                    >
-                        <i class="pi pi-arrow-down"></i>
-                        <span>Bottom</span>
-                    </button>
+            </div>
+
+            <!-- Glassmorphism (Hyprland Blur) -->
+             <div class="settings-card">
+                <div class="card-header">
+                    <div class="info-icon-wrapper">
+                        <i class="pi pi-eye"></i>
+                    </div>
+                    <div class="info-content-text">
+                        <h3 class="info-title">Effects & Blur</h3>
+                    </div>
+
+                    <div class="toggle-wrapper" style="margin-left: auto; display: flex; align-items: center; gap: 8px;">
+                        <span class="setting-label" style="margin-bottom:0;">Blur</span>
+                        <label class="switch">
+                            <input type="checkbox" v-model="hyprlandConfig.blur_enabled">
+                            <span class="slider round"></span>
+                        </label>
+                        <button class="primary-btn small-btn" @click="applyHyprlandConfig">
+                            <i class="pi pi-save"></i> Apply
+                        </button>
+                    </div>
                 </div>
+                
+                <div class="settings-grid" :class="{ 'disabled-grid': !hyprlandConfig.blur_enabled }">
+                    <div class="setting-control">
+                        <label class="setting-label">Blur Size ({{ hyprlandConfig.blur_size }})</label>
+                        <input type="range" class="slider-input" v-model="hyprlandConfig.blur_size" min="1" max="20" :disabled="!hyprlandConfig.blur_enabled">
+                    </div>
+                    <div class="setting-control">
+                        <label class="setting-label">Blur Passes ({{ hyprlandConfig.blur_passes }})</label>
+                        <input type="range" class="slider-input" v-model="hyprlandConfig.blur_passes" min="1" max="5" :disabled="!hyprlandConfig.blur_enabled">
+                    </div>
+                </div>
+                <div class="settings-row" style="margin-top: 20px; border-top: 1px solid var(--card-border); padding-top: 20px;">
+                    <div class="setting-control" style="flex-direction: row; justify-content: space-between; align-items: center; flex:1;">
+                        <label class="setting-label" style="margin: 0; margin-right: 12px;">Disable Hyprland Logo</label>
+                        <label class="switch">
+                            <input type="checkbox" v-model="hyprlandConfig.disable_logo">
+                            <span class="slider round"></span>
+                        </label>
+                    </div>
+                </div>
+                
             </div>
         </div>
     </div>
@@ -314,11 +402,6 @@ const {
     transition: transform 0.2s, box-shadow 0.2s;
 }
 
-.taskbar-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-}
-
 .taskbar-header {
     display: flex;
     align-items: center;
@@ -454,5 +537,76 @@ const {
     background-color: var(--bg-secondary);
     color: var(--text-primary);
 }
+
+.settings-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px 30px;
+    width: 100%;
+}
+
+.disabled-grid {
+    opacity: 0.5;
+    pointer-events: none;
+}
+
+.slider-input {
+    width: 100%;
+    height: 6px;
+    background: var(--bg-secondary);
+    border-radius: 3px;
+    appearance: none;
+    outline: none;
+    cursor: pointer;
+}
+
+.slider-input::-webkit-slider-thumb {
+    appearance: none;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: var(--accent-color);
+    cursor: pointer;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+    transition: transform 0.1s;
+}
+
+.slider-input::-webkit-slider-thumb:hover {
+    transform: scale(1.1);
+}
+
+.primary-btn {
+    background-color: var(--accent-color);
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: filter 0.2s;
+}
+
+.primary-btn:hover {
+    filter: brightness(1.1);
+}
+
+.small-btn {
+    padding: 6px 12px;
+    font-size: 0.85rem;
+}
+
+.color-input {
+    width: 60px;
+    height: 36px;
+    padding: 2px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    border-radius: 4px;
+}
+
 
 </style>
