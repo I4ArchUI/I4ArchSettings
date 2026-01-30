@@ -12,6 +12,9 @@ interface SystemInfo {
     cpu_model: string;
     memory_total: string;
     gpu_info: string;
+    disk_total?: string;
+    disk_used?: string;
+    disk_percent?: number;
 }
 
 const loading = ref(true);
@@ -21,7 +24,10 @@ const sysInfo = ref<SystemInfo>({
     kernel_version: '',
     cpu_model: '',
     memory_total: '',
-    gpu_info: ''
+    gpu_info: '',
+    disk_total: '',
+    disk_used: '',
+    disk_percent: 0
 });
 
 onMounted(async () => {
@@ -50,7 +56,15 @@ onMounted(async () => {
             </div>
             <div class="os-title">
                 <h2>{{ sysInfo.hostname }}</h2>
-                <p class="subtitle">{{ sysInfo.os_name || 'Linux System' }} - {{ sysInfo.kernel_version }}</p>
+                <div class="disk-usage" v-if="sysInfo.disk_total">
+                    <div class="disk-info-row">
+                         <span class="disk-label">{{ sysInfo.os_name || 'Linux System' }} - {{ sysInfo.kernel_version }}</span>
+                         <span class="disk-stats">{{ sysInfo.disk_used }} / {{ sysInfo.disk_total }}</span>
+                    </div>
+                    <div class="progress-track" :title="sysInfo.disk_percent + '% used'">
+                        <div class="progress-fill" :style="{ width: sysInfo.disk_percent + '%' }"></div>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -138,13 +152,16 @@ onMounted(async () => {
 }
 
 .logo-img {
-    width: 100%;
     height: 100%;
+    aspect-ratio: 1/1;
     object-fit: cover;
     border-radius: 14px;
     display: block;
 }
 
+.os-title {
+    width: 100%;
+}
 .os-title h2 {
     margin: 0 0 8px 0;
     font-size: 28px;
@@ -156,6 +173,42 @@ onMounted(async () => {
     margin: 0;
     color: var(--text-secondary);
     font-size: 16px;
+}
+
+.disk-usage {
+    margin-top: 10px;
+    width: 100%;
+}
+
+.disk-info-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 8px;
+    font-size: 13px;
+}
+
+.disk-label {
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+.disk-stats {
+    color: var(--text-primary);
+    font-weight: 600;
+}
+
+.progress-track {
+    height: 8px;
+    background: rgba(128, 128, 128, 0.2);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #0099ff, #00cbff);
+    border-radius: 4px;
+    transition: width 0.6s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .info-grid {

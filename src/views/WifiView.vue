@@ -143,7 +143,7 @@ const {
     width: 28px;
     height: 28px;
     border-radius: 6px;
-    background-color: var(--accent-color);
+    background-color: #007bffd0;
     display: flex;
     align-items: center;
     justify-content: center;

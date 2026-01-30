@@ -4,6 +4,7 @@ use modules::appearance::{
     apply_appearance_conf, get_current_appearance_config, get_cursor_themes, get_gtk_themes_list,
     get_hyprland_config, save_hyprland_config,
 };
+use modules::apps::{get_installed_apps, get_installed_packages, uninstall_app, uninstall_package};
 use modules::bluetooth::{
     connect_bluetooth, get_bluetooth_devices, get_bluetooth_status, start_scan, stop_scan,
     toggle_bluetooth, BluetoothState,
@@ -69,7 +70,11 @@ pub fn run() {
             disconnect_vpn,
             import_vpn,
             check_updates,
-            update_system
+            update_system,
+            get_installed_apps,
+            get_installed_packages,
+            uninstall_package,
+            uninstall_app
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
