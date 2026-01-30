@@ -1,25 +1,29 @@
 mod modules;
 
-use modules::appearance::{
+use modules::apps::apps::{
+    get_installed_apps, get_installed_packages, uninstall_app, uninstall_package,
+};
+use modules::apps::updates::{check_updates, update_system};
+use modules::hyprland::appearance::{
     apply_appearance_conf, get_current_appearance_config, get_cursor_themes, get_gtk_themes_list,
     get_hyprland_config, save_hyprland_config,
 };
-use modules::apps::{get_installed_apps, get_installed_packages, uninstall_app, uninstall_package};
-use modules::bluetooth::{
+use modules::hyprland::display::{get_displays, save_displays};
+use modules::hyprland::env::{get_env_vars, save_env_vars};
+use modules::hyprland::keybinds::{get_keybinds, save_keybinds};
+use modules::hyprland::startup::{get_startup_commands, save_startup_commands};
+use modules::hyprland::wallpaper::{
+    get_current_wallpaper_path, get_wallpaper_base64, set_wallpaper,
+};
+use modules::hyprland::waybar::{get_waybar_position, set_waybar_position};
+use modules::settings::{get_app_settings, save_app_settings};
+use modules::systems::bluetooth::{
     connect_bluetooth, get_bluetooth_devices, get_bluetooth_status, start_scan, stop_scan,
     toggle_bluetooth, BluetoothState,
 };
-use modules::display::{get_displays, save_displays};
-use modules::env::{get_env_vars, save_env_vars};
-use modules::keybinds::{get_keybinds, save_keybinds};
-use modules::settings::{get_app_settings, save_app_settings};
-use modules::startup::{get_startup_commands, save_startup_commands};
-use modules::system::{get_gtk_theme, get_system_info};
-use modules::updates::{check_updates, update_system};
-use modules::vpn::{connect_vpn, disconnect_vpn, get_vpn_connections, import_vpn};
-use modules::wallpaper::{get_current_wallpaper_path, get_wallpaper_base64, set_wallpaper};
-use modules::waybar::{get_waybar_position, set_waybar_position};
-use modules::wifi::{
+use modules::systems::system::{get_gtk_theme, get_system_info};
+use modules::systems::vpn::{connect_vpn, disconnect_vpn, get_vpn_connections, import_vpn};
+use modules::systems::wifi::{
     connect_wifi, get_wifi_config, get_wifi_status, scan_wifi, set_wifi_config, toggle_wifi,
 };
 
