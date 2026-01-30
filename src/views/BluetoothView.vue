@@ -3,6 +3,7 @@ import { useBluetoothViewModel } from '../viewmodels/bluetooth.viewmodel';
 import LoadingState from '@/components/LoadingState.vue';
 import PageLayout from '../components/common/PageLayout.vue';
 import SettingsCard from '../components/common/SettingsCard.vue';
+import loadingGif from '@/assets/loading-cat.gif';
 
 const {
     isEnabled,
@@ -62,7 +63,7 @@ const getDeviceIcon = (iconName?: string) => {
     </template>
 
     <div v-if="isEnabled" class="device-list">
-        <LoadingState v-if="loading" />
+        <LoadingState v-if="loading" loading-text="Scanning for devices..." />
         
         <SettingsCard v-else-if="sortedDevices.length === 0">
              <div class="empty-state">
@@ -74,7 +75,7 @@ const getDeviceIcon = (iconName?: string) => {
              <!-- Using custom list style inside card -->
              <div class="settings-group-list">
                 <div 
-                    v-for="(dev, index) in sortedDevices" 
+                    v-for="(dev) in sortedDevices" 
                     :key="dev.mac"
                     class="settings-item"
                     @click="connect(dev)"
@@ -90,8 +91,7 @@ const getDeviceIcon = (iconName?: string) => {
                         <i class="pi pi-check" style="font-weight: bold;"></i>
                     </div>
                     <div v-else-if="dev.mac === connectingMac" class="connecting-label">
-                        <i class="pi pi-spin pi-spinner" style="font-size: 1rem; margin-right: 5px;"></i>
-                        Connecting...
+                        <img :src="loadingGif" style="width: 22px; height: 22px;" alt="Loading" />
                     </div>
                     <div v-else class="action-label">
                         Connect
@@ -182,8 +182,6 @@ const getDeviceIcon = (iconName?: string) => {
 .connecting-label {
     font-size: 12px;
     color: var(--text-secondary);
-    display: flex;
-    align-items: center;
 }
 
 .action-label {

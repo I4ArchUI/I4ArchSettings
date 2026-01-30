@@ -4,6 +4,7 @@ import WifiConfigModal from '@/components/wifi/WifiConfigModal.vue';
 import LoadingState from '@/components/LoadingState.vue';
 import PageLayout from '../components/common/PageLayout.vue';
 import SettingsCard from '../components/common/SettingsCard.vue';
+import loadingGif from '@/assets/loading-cat.gif';
 
 const {
     isEnabled,
@@ -37,7 +38,7 @@ const {
     </template>
 
     <div v-if="isEnabled" class="network-list">
-        <LoadingState v-if="loading" />
+        <LoadingState v-if="loading" loading-text="Scanning for Wi-Fi network..." />
         
         <SettingsCard v-else-if="networks.length === 0">
              <div class="empty-state">
@@ -69,7 +70,7 @@ const {
                     
                     <!-- Status Indicators -->
                     <div v-if="connectingSsid === net.ssid" class="status-badge">
-                        <i class="pi pi-spin pi-spinner" style="color: var(--accent-color)"></i>
+                        <img :src="loadingGif" style="width: 22px; height: 22px;" alt="Loading" />
                     </div>
                     <div v-else-if="net.active" class="connected-badge">
                         <i class="pi pi-check" style="color: var(--accent-color)"></i>

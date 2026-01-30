@@ -9,6 +9,7 @@ import StartupView from '../views/StartupView.vue';
 import KeybindsView from '../views/KeybindsView.vue';
 
 import EnvView from '../views/EnvView.vue';
+import SystemUpdateView from '../views/SystemUpdateView.vue';
 
 const routes = [
     { path: '/', redirect: '/about' },
@@ -19,6 +20,7 @@ const routes = [
     { path: '/appearance', name: 'Appearance', component: AppearanceView },
     { path: '/displays', name: 'Displays', component: DisplaysView },
     { path: '/env', name: 'Environment', component: EnvView },
+    { path: '/system-update', name: 'System Update', component: SystemUpdateView },
     { path: '/startup', name: 'Startup Apps', component: StartupView },
     { path: '/shortcuts', name: 'Keybinds', component: KeybindsView },
 ];

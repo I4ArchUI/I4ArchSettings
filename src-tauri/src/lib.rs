@@ -14,6 +14,7 @@ use modules::keybinds::{get_keybinds, save_keybinds};
 use modules::settings::{get_app_settings, save_app_settings};
 use modules::startup::{get_startup_commands, save_startup_commands};
 use modules::system::{get_gtk_theme, get_system_info};
+use modules::updates::{check_updates, update_system};
 use modules::vpn::{connect_vpn, disconnect_vpn, get_vpn_connections, import_vpn};
 use modules::wallpaper::{get_current_wallpaper_path, get_wallpaper_base64, set_wallpaper};
 use modules::waybar::{get_waybar_position, set_waybar_position};
@@ -66,7 +67,9 @@ pub fn run() {
             get_vpn_connections,
             connect_vpn,
             disconnect_vpn,
-            import_vpn
+            import_vpn,
+            check_updates,
+            update_system
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
