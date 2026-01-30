@@ -160,7 +160,6 @@ const {
         <SettingsCard title="Effects & Blur" icon="pi pi-eye">
             <template #actions>
                  <div class="toggle-wrapper" style="display: flex; align-items: center; gap: 8px;">
-                     <span class="setting-label" style="margin-bottom:0;">Blur</span>
                      <label class="switch">
                          <input type="checkbox" v-model="hyprlandConfig.blur_enabled">
                          <span class="slider round"></span>

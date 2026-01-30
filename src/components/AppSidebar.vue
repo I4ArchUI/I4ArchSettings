@@ -9,29 +9,30 @@ const menuGroups = [
     {
         title: 'Network',
         items: [
-            { label: 'Wi-Fi', icon: 'pi pi-wifi', path: '/wifi', color: '#666464' },
-            { label: 'VPN', icon: 'pi pi-cloud', path: '/vpn', color: '#666464' },
-            { label: 'Bluetooth', icon: 'pi pi-mobile', path: '/bluetooth', color: '#666464' },
+            { label: 'Wi-Fi', icon: 'pi pi-wifi', path: '/wifi', color: '#525252' },
+            { label: 'VPN', icon: 'pi pi-cloud', path: '/vpn', color: '#525252' },
+            { label: 'Bluetooth', icon: 'pi pi-mobile', path: '/bluetooth', color: '#525252' },
         ]
     },
     {
         title: 'Personalization',
         items: [
-            { label: 'Displays', icon: 'pi pi-desktop', path: '/displays', color: '#666464' },
-            { label: 'Appearance', icon: 'pi pi-palette', path: '/appearance', color: '#666464' },
+            { label: 'Displays', icon: 'pi pi-desktop', path: '/displays', color: '#525252' },
+            { label: 'Appearance', icon: 'pi pi-palette', path: '/appearance', color: '#525252' },
         ]
     },
     {
         title: 'Apps',
         items: [
-            { label: 'Startup Apps', icon: 'pi pi-objects-column', path: '/startup', color: '#666464' },
+            { label: 'Startup Apps', icon: 'pi pi-objects-column', path: '/startup', color: '#525252' },
         ]
     },
     {
         title: 'System',
         items: [
-            { label: 'Shortcuts', icon: 'pi pi-address-book', path: '/shortcuts', color: '#666464' },
-            { label: 'Environment', icon: 'pi pi-box', path: '/env', color: '#666464' },
+            { label: 'Shortcuts', icon: 'pi pi-address-book', path: '/shortcuts', color: '#525252' },
+            { label: 'Environment', icon: 'pi pi-box', path: '/env', color: '#525252' },
+            { label: 'System Update', icon: 'pi pi-history', path: '/system-update', color: '#525252' },
         ]
     },
 ];
@@ -69,7 +70,10 @@ const isActive = (path: string) => route.path === path;
                     :class="{ 'active': isActive(item.path) }"
                     @click="navigate(item.path)"
                 >
-                    <div class="icon-wrapper" :style="{ backgroundColor: item.color }">
+                    <div class="icon-wrapper" :style="{ 
+                        backgroundColor: item.color, 
+                        opacity: isActive(item.path) ? 1 : 0.5 
+                    }">
                         <i :class="item.icon" style="color: white; font-size: 0.8rem;"></i>
                     </div>
                     <span class="label">{{ item.label }}</span>
@@ -166,10 +170,12 @@ const isActive = (path: string) => route.path === path;
 .menu-item:hover {
     background-color: var(--item-hover-bg);
 }
+
 .menu-item.active {
     background-color: var(--item-active-bg);
     color: var(--item-active-text);
 }
+
 .icon-wrapper {
     width: 25px;
     height: 25px;
@@ -178,6 +184,7 @@ const isActive = (path: string) => route.path === path;
     align-items: center;
     justify-content: center;
     margin-right: 10px;
+    opacity: 0.6;
 }
 .label {
     font-size: 15px;

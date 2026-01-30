@@ -1,5 +1,8 @@
 <script setup lang="ts">
-// No props needed for this simple component
+defineProps<{
+    loadingText?: string;
+}>();
+
 import loadingGif from '@/assets/loading-cat.gif';
 </script>
 
@@ -8,7 +11,7 @@ import loadingGif from '@/assets/loading-cat.gif';
         <div class="loading-spinner">
             <img :src="loadingGif" alt="Loading" />
         </div>
-        <p class="loading-text">Loading...</p>
+        <p class="loading-text">{{ loadingText ?? 'Loading ...' }}</p>
     </div>
 </template>
 
@@ -23,12 +26,12 @@ import loadingGif from '@/assets/loading-cat.gif';
 }
 
 .loading-spinner img {
-    width: 3rem;
-    height: 3rem;
+    width: 6rem;
+    height: 6rem;
 }
 
 .loading-text {
-    font-size: 1.1rem;
+    font-size: 1.2rem;
     color: var(--text-secondary);
     margin: 0;
 }
