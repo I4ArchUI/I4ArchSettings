@@ -28,6 +28,8 @@ export function useUpdatesViewModel() {
     const updateSystem = async () => {
         try {
             await invoke('update_system');
+            // Wait for terminal to close, then refresh
+            await checkUpdates();
         } catch (e: any) {
             error.value = 'Failed to launch update terminal: ' + e;
         }

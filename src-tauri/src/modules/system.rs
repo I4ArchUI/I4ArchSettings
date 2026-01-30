@@ -10,6 +10,9 @@ pub struct SystemInfo {
     cpu_model: String,
     memory_total: String,
     gpu_info: String,
+    disk_total: String,
+    disk_used: String,
+    disk_percent: u8,
 }
 
 /// Gathers comprehensive system information by querying various system tools and files.
@@ -82,6 +85,25 @@ pub fn get_system_info() -> SystemInfo {
         }
     }
 
+    // Retrieve disk usage for /
+    let mut disk_total = "Unknown".to_string();
+    let mut disk_used = "Unknown".to_string();
+    let mut disk_percent: u8 = 0;
+
+    if let Ok(output) = Command::new("df").arg("-h").arg("/").output() {
+        let stdout = String::from_utf8_lossy(&output.stdout);
+        let lines: Vec<&str> = stdout.lines().collect();
+        if lines.len() >= 2 {
+            let parts: Vec<&str> = lines[1].split_whitespace().collect();
+            if parts.len() >= 5 {
+                disk_total = parts[1].to_string();
+                disk_used = parts[2].to_string();
+                let percent_str = parts[4].trim_end_matches('%');
+                disk_percent = percent_str.parse().unwrap_or(0);
+            }
+        }
+    }
+
     SystemInfo {
         hostname,
         os_name,
@@ -89,6 +111,9 @@ pub fn get_system_info() -> SystemInfo {
         cpu_model,
         memory_total,
         gpu_info,
+        disk_total,
+        disk_used,
+        disk_percent,
     }
 }
 

@@ -93,7 +93,8 @@ pub fn update_system() -> Result<(), String> {
 
         // Attempt to spawn the terminal
         // We use spawn() because we don't need to wait for it to finish, just launch it
-        if cmd.spawn().is_ok() {
+        if let Ok(mut child) = cmd.spawn() {
+            let _ = child.wait();
             return Ok(());
         }
     }
