@@ -129,6 +129,8 @@ pub fn uninstall_package(name: String) -> Result<(), String> {
         match term {
             "gnome-terminal" | "xfce4-terminal" => {
                 cmd.args(&[
+                    "--title",
+                    "uninstall-app",
                     "--",
                     "bash",
                     "-c",
@@ -140,6 +142,8 @@ pub fn uninstall_package(name: String) -> Result<(), String> {
             }
             "konsole" => {
                 cmd.args(&[
+                    "-p",
+                    "tabtitle=uninstall-app",
                     "-e",
                     "bash",
                     "-c",
@@ -149,7 +153,20 @@ pub fn uninstall_package(name: String) -> Result<(), String> {
                     ),
                 ]);
             }
-            "kitty" | "alacritty" | "wezterm" => {
+            "kitty" | "alacritty" => {
+                cmd.args(&[
+                    "--title",
+                    "uninstall-app",
+                    "-e",
+                    "sh",
+                    "-c",
+                    &format!(
+                        "{}; echo; read -p 'Press Enter to close...' -n 1",
+                        uninstall_cmd
+                    ),
+                ]);
+            }
+            "wezterm" => {
                 cmd.args(&[
                     "-e",
                     "sh",
