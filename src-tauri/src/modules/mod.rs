@@ -1,14 +1,4 @@
-pub mod appearance;
 pub mod apps;
-pub mod bluetooth;
-pub mod display;
-pub mod env;
-pub mod keybinds;
+pub mod hyprland;
 pub mod settings;
-pub mod startup;
-pub mod system;
-pub mod updates;
-pub mod vpn;
-pub mod wallpaper;
-pub mod waybar;
-pub mod wifi;
+pub mod systems;
