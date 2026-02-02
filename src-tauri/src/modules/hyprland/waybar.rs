@@ -4,14 +4,20 @@ use std::process::Command;
 
 /// Changes the Waybar position by copying configuration files from a specific theme directory.
 #[tauri::command]
-pub fn set_waybar_position(position: String) -> Result<String, String> {
+pub fn set_waybar_position(position: String, theme: String) -> Result<String, String> {
     let home = std::env::var("HOME").map_err(|_| "Cannot get HOME directory".to_string())?;
     let waybar_config_dir = PathBuf::from(&home).join(".config/waybar");
-    let position_dir = waybar_config_dir.join("themes").join(&position);
+    let position_dir = waybar_config_dir
+        .join("themes")
+        .join(&theme)
+        .join(&position);
 
     // Verify the target position directory exists
     if !position_dir.exists() {
-        return Err(format!("Position directory '{}' does not exist", position));
+        return Err(format!(
+            "Position directory '{}' for theme '{}' does not exist",
+            position, theme
+        ));
     }
 
     // Deploy config.jsonc
@@ -22,7 +28,7 @@ pub fn set_waybar_position(position: String) -> Result<String, String> {
         fs::copy(&config_src, &config_dest)
             .map_err(|e| format!("Failed to copy config.jsonc: {}", e))?;
     } else {
-        return Err(format!("config.jsonc not found in {}", position));
+        return Err(format!("config.jsonc not found in {}/{}", theme, position));
     }
 
     // Deploy style.css
@@ -33,12 +39,15 @@ pub fn set_waybar_position(position: String) -> Result<String, String> {
         fs::copy(&style_src, &style_dest)
             .map_err(|e| format!("Failed to copy style.css: {}", e))?;
     } else {
-        return Err(format!("style.css not found in {}", position));
+        return Err(format!("style.css not found in {}/{}", theme, position));
     }
 
     reload_waybar()?;
 
-    Ok(format!("Waybar position changed to {}", position))
+    Ok(format!(
+        "Waybar position changed to {} ({})",
+        position, theme
+    ))
 }
 
 /// Restarts the Waybar process to apply configuration changes.

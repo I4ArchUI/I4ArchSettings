@@ -14,7 +14,7 @@ export function useAppearanceViewModel() {
     const loading = ref(false);
     const isDark = ref(false);
     const currentWallpaperSrc = ref('');
-    const waybarPosition = ref('bottom');
+    const waybarPosition = ref('top');
     const changingPosition = ref(false);
 
     // Notifications
@@ -126,6 +126,9 @@ export function useAppearanceViewModel() {
         // We apply immediately to system now via our new function
         await applyAppearanceSettings();
 
+        // Update Waybar with new theme
+        await setWaybarPosition(waybarPosition.value);
+
         // Keep legacy settings save for app-internal persistence if needed
         try {
             const currentSettings = await invoke<AppSettings>('get_app_settings');
@@ -187,12 +190,13 @@ export function useAppearanceViewModel() {
 
     // Waybar Position Logic
     const setWaybarPosition = async (position: string) => {
-        if (changingPosition.value || position === waybarPosition.value) return;
+        if (changingPosition.value) return;
 
         changingPosition.value = true;
         try {
             // Set waybar position (copy config files and reload waybar)
-            await invoke('set_waybar_position', { position });
+            const theme = isDark.value ? 'dark' : 'light';
+            await invoke('set_waybar_position', { position, theme });
             waybarPosition.value = position;
 
             // Save to settings
