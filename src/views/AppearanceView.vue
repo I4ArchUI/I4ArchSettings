@@ -21,7 +21,8 @@ const {
     cursorSizes,
     applyAppearanceSettings,
     hyprlandConfig,
-    applyHyprlandConfig
+    applyHyprlandConfig,
+    isWaybarInstalled
 } = useAppearanceViewModel();
 </script>
 
@@ -45,7 +46,7 @@ const {
             </div>
         </div>
 
-        <SettingsCard title="Taskbar Position" icon="pi pi-window-maximize">
+        <SettingsCard title="Taskbar Position" icon="pi pi-window-maximize" v-if="isWaybarInstalled">
             <div class="position-buttons" style="padding: 20px;">
                 <button 
                     class="position-btn" 

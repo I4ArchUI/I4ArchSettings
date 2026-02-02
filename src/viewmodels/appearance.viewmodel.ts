@@ -14,7 +14,7 @@ export function useAppearanceViewModel() {
     const loading = ref(false);
     const isDark = ref(false);
     const currentWallpaperSrc = ref('');
-    const waybarPosition = ref('bottom');
+    const waybarPosition = ref('top');
     const changingPosition = ref(false);
 
     // Notifications
@@ -126,6 +126,18 @@ export function useAppearanceViewModel() {
         // We apply immediately to system now via our new function
         await applyAppearanceSettings();
 
+        // Update Waybar with new theme if available
+        if (isWaybarInstalled.value) {
+            await setWaybarPosition(waybarPosition.value);
+        }
+
+        // Update Kitty with new theme if available
+        if (isKittyInstalled.value) {
+            try {
+                await invoke('set_kitty_theme', { theme: newTheme });
+            } catch (e) { }
+        }
+
         // Keep legacy settings save for app-internal persistence if needed
         try {
             const currentSettings = await invoke<AppSettings>('get_app_settings');
@@ -187,12 +199,13 @@ export function useAppearanceViewModel() {
 
     // Waybar Position Logic
     const setWaybarPosition = async (position: string) => {
-        if (changingPosition.value || position === waybarPosition.value) return;
+        if (changingPosition.value) return;
 
         changingPosition.value = true;
         try {
             // Set waybar position (copy config files and reload waybar)
-            await invoke('set_waybar_position', { position });
+            const theme = isDark.value ? 'dark' : 'light';
+            await invoke('set_waybar_position', { position, theme });
             waybarPosition.value = position;
 
             // Save to settings
@@ -212,9 +225,22 @@ export function useAppearanceViewModel() {
         }
     };
 
+    // App Availability State
+    const isWaybarInstalled = ref(false);
+    const isKittyInstalled = ref(false);
+
+    // Load installed apps
+    const loadInstalledApps = async () => {
+        try {
+            isWaybarInstalled.value = await invoke('check_app_installed', { appName: 'waybar' });
+            isKittyInstalled.value = await invoke('check_app_installed', { appName: 'kitty' });
+        } catch (e) { }
+    };
+
     // --- Lifecycle ---
     onMounted(async () => {
         await loadAppearanceData();
+        await loadInstalledApps(); // Call the new function here
 
         try {
             const settings = await invoke<AppSettings>('get_app_settings');
@@ -236,6 +262,8 @@ export function useAppearanceViewModel() {
         currentWallpaperSrc,
         waybarPosition,
         changingPosition,
+        isWaybarInstalled,
+        isKittyInstalled,
 
         // New State
         cursorThemes,
