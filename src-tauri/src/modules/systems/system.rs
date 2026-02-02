@@ -153,3 +153,13 @@ pub fn get_gtk_theme() -> String {
         Err(_) => "light".to_string(),
     }
 }
+
+/// Checks if a specific application (command) is installed/available in the system PATH.
+#[tauri::command]
+pub fn check_app_installed(app_name: String) -> bool {
+    Command::new("which")
+        .arg(&app_name)
+        .output()
+        .map(|o| o.status.success())
+        .unwrap_or(false)
+}

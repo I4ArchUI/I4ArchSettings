@@ -126,8 +126,17 @@ export function useAppearanceViewModel() {
         // We apply immediately to system now via our new function
         await applyAppearanceSettings();
 
-        // Update Waybar with new theme
-        await setWaybarPosition(waybarPosition.value);
+        // Update Waybar with new theme if available
+        if (isWaybarInstalled.value) {
+            await setWaybarPosition(waybarPosition.value);
+        }
+
+        // Update Kitty with new theme if available
+        if (isKittyInstalled.value) {
+            try {
+                await invoke('set_kitty_theme', { theme: newTheme });
+            } catch (e) { }
+        }
 
         // Keep legacy settings save for app-internal persistence if needed
         try {
@@ -216,9 +225,22 @@ export function useAppearanceViewModel() {
         }
     };
 
+    // App Availability State
+    const isWaybarInstalled = ref(false);
+    const isKittyInstalled = ref(false);
+
+    // Load installed apps
+    const loadInstalledApps = async () => {
+        try {
+            isWaybarInstalled.value = await invoke('check_app_installed', { appName: 'waybar' });
+            isKittyInstalled.value = await invoke('check_app_installed', { appName: 'kitty' });
+        } catch (e) { }
+    };
+
     // --- Lifecycle ---
     onMounted(async () => {
         await loadAppearanceData();
+        await loadInstalledApps(); // Call the new function here
 
         try {
             const settings = await invoke<AppSettings>('get_app_settings');
@@ -240,6 +262,8 @@ export function useAppearanceViewModel() {
         currentWallpaperSrc,
         waybarPosition,
         changingPosition,
+        isWaybarInstalled,
+        isKittyInstalled,
 
         // New State
         cursorThemes,
