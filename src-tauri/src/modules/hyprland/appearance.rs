@@ -161,6 +161,25 @@ pub fn apply_appearance_conf(
 
     fs::write(config_path, content).map_err(|e| e.to_string())?;
 
+    // Update SwayNC style
+    let swaync_mode = if dark_mode { "dark" } else { "light" };
+    let swaync_style_content = format!(
+        "@import '../../.cache/wal/colors-waybar.css';\n\
+         @import 'themes/{}/notifications.css';\n\
+         @import 'themes/{}/central_control.css';",
+        swaync_mode, swaync_mode
+    );
+
+    let swaync_config_path = Path::new(&home).join(".config/swaync/style.css");
+
+    // Attempt to write the file, logging error but not failing the request
+    if let Err(e) = fs::write(&swaync_config_path, swaync_style_content) {
+        eprintln!("Failed to write SwayNC style: {}", e);
+    } else {
+        // Reload SwayNC CSS
+        let _ = Command::new("swaync-client").arg("-rs").output();
+    }
+
     Ok(())
 }
 
