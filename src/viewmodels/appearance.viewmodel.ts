@@ -264,8 +264,8 @@ export function useAppearanceViewModel() {
         changingPosition,
         isWaybarInstalled,
         isKittyInstalled,
-
         // New State
+
         cursorThemes,
         gtkThemes,
         selectedCursorTheme,

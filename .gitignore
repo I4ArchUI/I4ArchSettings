@@ -55,3 +55,4 @@ TODO.md
 .aider*
 /node_modules
 /dist
+install.sh
