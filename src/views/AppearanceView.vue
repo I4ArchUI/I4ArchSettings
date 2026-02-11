@@ -32,8 +32,9 @@ const {
 
         <div class="card-content-wrapper">
             <div class="image-frame">
-                <img :src="currentWallpaperSrc" alt="Current Wallpaper" class="wallpaper-img" @error="handleImageError" />
-                
+                <img :src="currentWallpaperSrc" alt="Current Wallpaper" class="wallpaper-img"
+                    @error="handleImageError" />
+
                 <div class="change-btn-container">
                     <div class="path-container">
                         <span class="path-highlight">~/.config/hypr/themes/background.png</span>
@@ -48,39 +49,23 @@ const {
 
         <SettingsCard title="Taskbar Position" icon="pi pi-window-maximize" v-if="isWaybarInstalled">
             <div class="position-buttons" style="padding: 20px;">
-                <button 
-                    class="position-btn" 
-                    :class="{ active: waybarPosition === 'top' }"
-                    @click="setWaybarPosition('top')"
-                    :disabled="changingPosition"
-                >
+                <button class="position-btn" :class="{ active: waybarPosition === 'top' }"
+                    @click="setWaybarPosition('top')" :disabled="changingPosition">
                     <i class="pi pi-arrow-up"></i>
                     <span>Top</span>
                 </button>
-                <button 
-                    class="position-btn" 
-                    :class="{ active: waybarPosition === 'left' }"
-                    @click="setWaybarPosition('left')"
-                    :disabled="changingPosition"
-                >
+                <button class="position-btn" :class="{ active: waybarPosition === 'left' }"
+                    @click="setWaybarPosition('left')" :disabled="changingPosition">
                     <i class="pi pi-arrow-left"></i>
                     <span>Left</span>
                 </button>
-                <button 
-                    class="position-btn" 
-                    :class="{ active: waybarPosition === 'right' }"
-                    @click="setWaybarPosition('right')"
-                    :disabled="changingPosition"
-                >
+                <button class="position-btn" :class="{ active: waybarPosition === 'right' }"
+                    @click="setWaybarPosition('right')" :disabled="changingPosition">
                     <i class="pi pi-arrow-right"></i>
                     <span>Right</span>
                 </button>
-                <button 
-                    class="position-btn" 
-                    :class="{ active: waybarPosition === 'bottom' }"
-                    @click="setWaybarPosition('bottom')"
-                    :disabled="changingPosition"
-                >
+                <button class="position-btn" :class="{ active: waybarPosition === 'bottom' }"
+                    @click="setWaybarPosition('bottom')" :disabled="changingPosition">
                     <i class="pi pi-arrow-down"></i>
                     <span>Bottom</span>
                 </button>
@@ -101,7 +86,8 @@ const {
                 <div class="setting-control">
                     <label class="setting-label">Theme</label>
                     <select class="custom-select" v-model="selectedCursorTheme" @change="applyAppearanceSettings">
-                        <option v-for="theme in cursorThemes" :key="theme.name" :value="theme.name">{{ theme.name }}</option>
+                        <option v-for="theme in cursorThemes" :key="theme.name" :value="theme.name">{{ theme.name }}
+                        </option>
                     </select>
                 </div>
                 <div class="setting-control">
@@ -116,8 +102,10 @@ const {
         <SettingsCard title="GTK & Shell Theme" icon="pi pi-palette">
             <div class="settings-row" style="padding: 20px;">
                 <div class="setting-control" style="width: 100%;">
-                    <select class="custom-select" v-model="selectedGtkTheme" @change="applyAppearanceSettings" style="width: 100%;">
-                        <option v-for="theme in gtkThemes" :key="theme.name" :value="theme.name">{{ theme.name }}</option>
+                    <select class="custom-select" v-model="selectedGtkTheme" @change="applyAppearanceSettings"
+                        style="width: 100%;">
+                        <option v-for="theme in gtkThemes" :key="theme.name" :value="theme.name">{{ theme.name }}
+                        </option>
                     </select>
                 </div>
             </div>
@@ -147,42 +135,49 @@ const {
                     <label class="setting-label">Rounding ({{ hyprlandConfig.rounding }}px)</label>
                     <input type="range" class="slider-input" v-model="hyprlandConfig.rounding" min="0" max="30">
                 </div>
-                 <div class="setting-control">
+                <div class="setting-control">
                     <label class="setting-label">Active Opacity ({{ hyprlandConfig.active_opacity }})</label>
-                    <input type="range" class="slider-input" v-model="hyprlandConfig.active_opacity" min="0.1" max="1.0" step="0.05">
+                    <input type="range" class="slider-input" v-model="hyprlandConfig.active_opacity" min="0.1" max="1.0"
+                        step="0.05">
                 </div>
                 <div class="setting-control">
                     <label class="setting-label">Inactive Opacity ({{ hyprlandConfig.inactive_opacity }})</label>
-                    <input type="range" class="slider-input" v-model="hyprlandConfig.inactive_opacity" min="0.1" max="1.0" step="0.05">
+                    <input type="range" class="slider-input" v-model="hyprlandConfig.inactive_opacity" min="0.1"
+                        max="1.0" step="0.05">
                 </div>
             </div>
         </SettingsCard>
 
         <SettingsCard title="Effects & Blur" icon="pi pi-eye">
             <template #actions>
-                 <div class="toggle-wrapper" style="display: flex; align-items: center; gap: 8px;">
-                     <label class="switch">
-                         <input type="checkbox" v-model="hyprlandConfig.blur_enabled">
-                         <span class="slider round"></span>
-                     </label>
-                     <button class="primary-btn small-btn" @click="applyHyprlandConfig">
-                         <i class="pi pi-save"></i> Apply
-                     </button>
-                 </div>
+                <div class="toggle-wrapper" style="display: flex; align-items: center; gap: 8px;">
+                    <label class="switch">
+                        <input type="checkbox" v-model="hyprlandConfig.blur_enabled">
+                        <span class="slider round"></span>
+                    </label>
+                    <button class="primary-btn small-btn" @click="applyHyprlandConfig">
+                        <i class="pi pi-save"></i> Apply
+                    </button>
+                </div>
             </template>
 
-            <div class="settings-grid" :class="{ 'disabled-grid': !hyprlandConfig.blur_enabled }" style="padding: 20px;">
+            <div class="settings-grid" :class="{ 'disabled-grid': !hyprlandConfig.blur_enabled }"
+                style="padding: 20px;">
                 <div class="setting-control">
                     <label class="setting-label">Blur Size ({{ hyprlandConfig.blur_size }})</label>
-                    <input type="range" class="slider-input" v-model="hyprlandConfig.blur_size" min="1" max="20" :disabled="!hyprlandConfig.blur_enabled">
+                    <input type="range" class="slider-input" v-model="hyprlandConfig.blur_size" min="1" max="20"
+                        :disabled="!hyprlandConfig.blur_enabled">
                 </div>
                 <div class="setting-control">
                     <label class="setting-label">Blur Passes ({{ hyprlandConfig.blur_passes }})</label>
-                    <input type="range" class="slider-input" v-model="hyprlandConfig.blur_passes" min="1" max="5" :disabled="!hyprlandConfig.blur_enabled">
+                    <input type="range" class="slider-input" v-model="hyprlandConfig.blur_passes" min="1" max="5"
+                        :disabled="!hyprlandConfig.blur_enabled">
                 </div>
             </div>
-             <div class="settings-row" style="margin-top: 20px; border-top: 1px solid var(--card-border); padding: 20px;">
-                <div class="setting-control" style="flex-direction: row; justify-content: space-between; align-items: center; flex:1;">
+            <div class="settings-row"
+                style="margin-top: 20px; border-top: 1px solid var(--card-border); padding: 20px;">
+                <div class="setting-control"
+                    style="flex-direction: row; justify-content: space-between; align-items: center; flex:1;">
                     <label class="setting-label" style="margin: 0; margin-right: 12px;">Disable Hyprland Logo</label>
                     <label class="switch">
                         <input type="checkbox" v-model="hyprlandConfig.disable_logo">
@@ -213,7 +208,7 @@ const {
     align-items: center;
     justify-content: center;
     border: 8px solid rgb(102, 102, 102);
-    box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
     position: relative;
     margin-top: 20px;
 }
@@ -308,7 +303,7 @@ const {
     background-color: var(--card-bg);
     border-color: var(--accent-color);
     transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 .position-btn.active {
@@ -327,7 +322,7 @@ const {
     -webkit-appearance: none;
     -moz-appearance: none;
     background-color: var(--bg-secondary);
-    border: 1px solid var(--input-border, rgba(255,255,255,0.1));
+    border: 1px solid var(--input-border, rgba(255, 255, 255, 0.1));
     color: var(--text-primary);
     padding: 10px 14px;
     border-radius: 8px;

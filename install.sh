@@ -7,4 +7,4 @@ src-tauri/target/release/I4ArchSettings \
 /usr/bin/i4archsettings
 
 # Copy to config directory
-cp src-tauri/target/release/I4ArchSettings ~/.config/IHyprVN/apps/i4archsettings
+cp src-tauri/target/release/I4ArchSettings ~/.config/IArchDE/apps/i4archsettings
