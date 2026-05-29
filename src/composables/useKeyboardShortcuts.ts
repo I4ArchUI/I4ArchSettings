@@ -66,33 +66,32 @@ export function useKeyboardShortcuts() {
             }
 
             let path = '';
-            let pageName = '';
             
             switch (e.key) {
                 // Number navigation (Alt + 1, Alt + 2...)
-                case '1': path = '/wifi'; pageName = 'Wi-Fi'; break;
-                case '2': path = '/vpn'; pageName = 'VPN'; break;
-                case '3': path = '/bluetooth'; pageName = 'Bluetooth'; break;
-                case '4': path = '/appearance'; pageName = 'Wallpaper'; break;
-                case '5': path = '/themes'; pageName = 'Themes'; break;
-                case '6': path = '/displays'; pageName = 'Displays'; break;
-                case '7': path = '/apps'; pageName = 'Installed Apps'; break;
-                case '8': path = '/startup'; pageName = 'Startup Apps'; break;
-                case '9': path = '/shortcuts'; pageName = 'Keybinds'; break;
-                case '0': path = '/env'; pageName = 'Environment'; break;
-                case '-': path = '/system-update'; pageName = 'System Update'; break;
-                case '=': path = '/about'; pageName = 'About System'; break;
+                case '1': path = '/wifi'; break;
+                case '2': path = '/vpn'; break;
+                case '3': path = '/bluetooth'; break;
+                case '4': path = '/appearance'; break;
+                case '5': path = '/themes'; break;
+                case '6': path = '/displays'; break;
+                case '7': path = '/apps'; break;
+                case '8': path = '/startup'; break;
+                case '9': path = '/shortcuts'; break;
+                case '0': path = '/env'; break;
+                case '-': path = '/system-update'; break;
+                case '=': path = '/about'; break;
 
                 // Letter mnemonics (Alt + Key)
-                case 'w': case 'W': path = '/wifi'; pageName = 'Wi-Fi'; break;
-                case 'v': case 'V': path = '/vpn'; pageName = 'VPN'; break;
-                case 'b': case 'B': path = '/bluetooth'; pageName = 'Bluetooth'; break;
-                case 'p': case 'P': path = '/appearance'; pageName = 'Wallpaper'; break;
-                case 't': case 'T': path = '/themes'; pageName = 'Themes'; break;
-                case 'd': case 'D': path = '/displays'; pageName = 'Displays'; break;
-                case 'a': case 'A': path = '/apps'; pageName = 'Installed Apps'; break;
-                case 'u': case 'U': path = '/system-update'; pageName = 'System Update'; break;
-                case 'i': case 'I': path = '/about'; pageName = 'About System'; break;
+                case 'w': case 'W': path = '/wifi'; break;
+                case 'v': case 'V': path = '/vpn'; break;
+                case 'b': case 'B': path = '/bluetooth'; break;
+                case 'p': case 'P': path = '/appearance'; break;
+                case 't': case 'T': path = '/themes'; break;
+                case 'd': case 'D': path = '/displays'; break;
+                case 'a': case 'A': path = '/apps'; break;
+                case 'u': case 'U': path = '/system-update'; break;
+                case 'i': case 'I': path = '/about'; break;
                 
                 default:
                     return;
