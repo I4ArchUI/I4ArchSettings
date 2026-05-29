@@ -13,6 +13,7 @@ const menuItems = [
     { label: 'VPN', icon: 'pi pi-cloud', path: '/vpn' },
     { label: 'Bluetooth', icon: 'pi pi-mobile', path: '/bluetooth' },
     { label: 'Wallpaper & Colors', icon: 'pi pi-palette', path: '/appearance' },
+    { label: 'Themes', icon: 'pi pi-sliders-h', path: '/themes' },
     { label: 'Displays', icon: 'pi pi-desktop', path: '/displays' },
     { label: 'Installed Apps', icon: 'pi pi-th-large', path: '/apps' },
     { label: 'Startup Apps', icon: 'pi pi-cog', path: '/startup' },

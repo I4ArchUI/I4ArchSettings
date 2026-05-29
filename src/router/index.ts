@@ -5,6 +5,7 @@ import BluetoothView from '../views/BluetoothView.vue';
 import VpnView from '../views/VpnView.vue';
 import AboutView from '../views/AboutView.vue';
 import AppearanceView from '../views/AppearanceView.vue';
+import ThemesView from '../views/ThemesView.vue';
 import StartupView from '../views/StartupView.vue';
 import KeybindsView from '../views/KeybindsView.vue';
 
@@ -19,6 +20,7 @@ const routes = [
     { path: '/vpn', name: 'VPN', component: VpnView },
     { path: '/bluetooth', name: 'Bluetooth', component: BluetoothView },
     { path: '/appearance', name: 'Appearance', component: AppearanceView },
+    { path: '/themes', name: 'Themes', component: ThemesView },
     { path: '/displays', name: 'Displays', component: DisplaysView },
     { path: '/env', name: 'Environment', component: EnvView },
     { path: '/system-update', name: 'System Update', component: SystemUpdateView },
