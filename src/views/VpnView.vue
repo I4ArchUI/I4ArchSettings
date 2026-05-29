@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { ref, watch, onMounted, onUnmounted } from 'vue';
 import { useVpnViewModel } from '../viewmodels/vpn.viewmodel';
 import LoadingState from '@/components/LoadingState.vue';
 import PageLayout from '../components/common/PageLayout.vue';
@@ -7,6 +6,7 @@ import SettingsCard from '../components/common/SettingsCard.vue';
 import ModalDialog from '@/components/common/ModalDialog.vue';
 
 const {
+    selectedIndex,
     sortedConnections,
     loading,
     connectingUuid,
@@ -17,53 +17,6 @@ const {
     pickFile,
     saveConnection
 } = useVpnViewModel();
-
-onMounted(() => {
-    window.addEventListener('shortcut-add', openAddModal);
-    window.addEventListener('keydown', handleListKeyDown);
-});
-
-onUnmounted(() => {
-    window.removeEventListener('shortcut-add', openAddModal);
-    window.removeEventListener('keydown', handleListKeyDown);
-});
-
-const selectedIndex = ref(0);
-
-const handleListKeyDown = (e: KeyboardEvent) => {
-    const activeElement = document.activeElement;
-    const isTyping = activeElement && (
-        activeElement.tagName === 'INPUT' ||
-        activeElement.tagName === 'TEXTAREA' ||
-        activeElement.tagName === 'SELECT' ||
-        activeElement.getAttribute('contenteditable') === 'true'
-    );
-    if (isTyping) return;
-
-    if (showAddModal.value) return;
-
-    if (sortedConnections.value.length === 0) return;
-
-    if (e.key === 'ArrowDown') {
-        selectedIndex.value = (selectedIndex.value + 1) % sortedConnections.value.length;
-        e.preventDefault();
-    } else if (e.key === 'ArrowUp') {
-        selectedIndex.value = (selectedIndex.value - 1 + sortedConnections.value.length) % sortedConnections.value.length;
-        e.preventDefault();
-    } else if (e.key === 'Enter') {
-        const conn = sortedConnections.value[selectedIndex.value];
-        if (conn) {
-            toggleConnection(conn);
-        }
-        e.preventDefault();
-    }
-};
-
-watch(sortedConnections, (newVal) => {
-    if (selectedIndex.value >= newVal.length) {
-        selectedIndex.value = Math.max(0, newVal.length - 1);
-    }
-});
 
 /**
  * Returns dynamic, harmonized color schemes and icons for each VPN type.
