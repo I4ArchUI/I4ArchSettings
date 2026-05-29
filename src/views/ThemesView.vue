@@ -4,6 +4,8 @@ import PageLayout from '../components/common/PageLayout.vue';
 
 const {
     loading,
+    isDark,
+    toggleTheme,
     cursorThemes,
     gtkThemes,
     selectedCursorTheme,
@@ -13,6 +15,8 @@ const {
     hyprlandConfig,
     waybarPosition,
     changingPosition,
+    isWaybarInstalled,
+    isKittyInstalled,
     applyAppearanceSettings,
     applyHyprlandConfig,
     setWaybarPosition
@@ -20,11 +24,11 @@ const {
 
 const getIconForPosition = (position: string) => {
     switch (position) {
-        case 'top': return 'pi pi-align-top';
-        case 'bottom': return 'pi pi-align-bottom';
-        case 'left': return 'pi pi-align-left';
-        case 'right': return 'pi pi-align-right';
-        default: return 'pi pi-align-top';
+        case 'top': return 'pi pi-arrow-up';
+        case 'bottom': return 'pi pi-arrow-down';
+        case 'left': return 'pi pi-arrow-left';
+        case 'right': return 'pi pi-arrow-right';
+        default: return 'pi pi-arrow-up';
     }
 };
 </script>
@@ -39,7 +43,37 @@ const getIconForPosition = (position: string) => {
         </template>
 
         <div class="themes-container">
-            <!-- Section 1: System Look & Feel (GTK + Cursor) -->
+            <div class="settings-card glass-panel">
+                <div class="card-header">
+                    <div class="info-icon-wrapper" style="background: linear-gradient(135deg, var(--accent-color), #4caf50); box-shadow: 0 4px 12px rgba(var(--accent-rgb), 0.3);">
+                        <i class="pi pi-align-top"></i>
+                    </div>
+                    <div class="info-content-text">
+                        <h3>Status Bar (Waybar)</h3>
+                        <p>Configure the position of the Waybar status panel</p>
+                    </div>
+                </div>
+                
+                <div class="card-body">
+                    <div class="setting-control">
+                        <label class="setting-label">Bar Position</label>
+                        <div class="position-selector-grid">
+                            <button 
+                                v-for="pos in ['top', 'bottom', 'left', 'right']" 
+                                :key="pos" 
+                                class="pos-option-btn"
+                                :class="{ 'active': waybarPosition === pos }"
+                                @click="setWaybarPosition(pos)"
+                                :disabled="changingPosition"
+                            >
+                                <i :class="getIconForPosition(pos)" class="pos-icon"></i>
+                                <span class="pos-label">{{ pos }}</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <div class="settings-card glass-panel">
                 <div class="card-header">
                     <div class="info-icon-wrapper">
@@ -47,11 +81,45 @@ const getIconForPosition = (position: string) => {
                     </div>
                     <div class="info-content-text">
                         <h3>System Theme</h3>
-                        <p>Customize GTK themes, mouse cursors, and cursor sizes</p>
+                        <p>Customize color scheme, GTK themes, mouse cursors, and cursor sizes</p>
                     </div>
                 </div>
                 
                 <div class="card-body">
+                    <!-- Color Scheme (Light / Dark) -->
+                    <div class="setting-control full-width">
+                        <label class="setting-label">Color Scheme</label>
+                        <div class="theme-cards-container">
+                            <div 
+                                class="theme-card light-card" 
+                                :class="{ 'active': !isDark }"
+                                @click="isDark ? toggleTheme() : null"
+                            >
+                                <i class="pi pi-sun theme-icon"></i>
+                                <span class="theme-label">Light</span>
+                            </div>
+                            <div 
+                                class="theme-card dark-card" 
+                                :class="{ 'active': isDark }"
+                                @click="!isDark ? toggleTheme() : null"
+                            >
+                                <i class="pi pi-moon theme-icon"></i>
+                                <span class="theme-label">Dark</span>
+                            </div>
+                        </div>
+                        <!-- Kitty terminal theme badge -->
+                        <div v-if="isKittyInstalled" class="kitty-badge">
+                            <i class="pi pi-check-circle kitty-icon"></i>
+                            <span>Kitty terminal theme will also be updated</span>
+                        </div>
+                        <div v-if="isWaybarInstalled" class="kitty-badge">
+                            <i class="pi pi-check-circle kitty-icon"></i>
+                            <span>Waybar theme will also be updated</span>
+                        </div>
+                    </div>
+
+                    <hr class="section-divider" />
+
                     <div class="settings-grid">
                         <div class="setting-control">
                             <label class="setting-label">GTK Theme</label>
@@ -116,7 +184,6 @@ const getIconForPosition = (position: string) => {
                 </div>
             </div>
 
-            <!-- Section 2: Hyprland Window Settings -->
             <div class="settings-card glass-panel">
                 <div class="card-header">
                     <div class="info-icon-wrapper" style="background: linear-gradient(135deg, var(--accent-color), #2196f3); box-shadow: 0 4px 12px rgba(var(--accent-rgb), 0.3);">
@@ -248,38 +315,6 @@ const getIconForPosition = (position: string) => {
                     </div>
                 </div>
             </div>
-
-            <!-- Section 3: Status Bar (Waybar) -->
-            <div class="settings-card glass-panel">
-                <div class="card-header">
-                    <div class="info-icon-wrapper" style="background: linear-gradient(135deg, var(--accent-color), #4caf50); box-shadow: 0 4px 12px rgba(var(--accent-rgb), 0.3);">
-                        <i class="pi pi-align-top"></i>
-                    </div>
-                    <div class="info-content-text">
-                        <h3>Status Bar (Waybar)</h3>
-                        <p>Configure the position of the Waybar status panel</p>
-                    </div>
-                </div>
-                
-                <div class="card-body">
-                    <div class="setting-control">
-                        <label class="setting-label">Bar Position</label>
-                        <div class="position-selector-grid">
-                            <button 
-                                v-for="pos in ['top', 'bottom', 'left', 'right']" 
-                                :key="pos" 
-                                class="pos-option-btn"
-                                :class="{ 'active': waybarPosition === pos }"
-                                @click="setWaybarPosition(pos)"
-                                :disabled="changingPosition"
-                            >
-                                <i :class="getIconForPosition(pos)" class="pos-icon"></i>
-                                <span class="pos-label">{{ pos }}</span>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
         </div>
     </PageLayout>
 </template>
@@ -364,6 +399,81 @@ const getIconForPosition = (position: string) => {
 .toggle-desc {
     font-size: 12px;
     color: var(--text-secondary, #a0a0a5);
+}
+
+/* Color Scheme Cards */
+.full-width {
+    grid-column: 1 / -1;
+}
+
+.theme-cards-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-top: 8px;
+}
+
+.theme-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 20px 16px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.theme-card:hover {
+    background: rgba(255, 255, 255, 0.06);
+    color: var(--text-primary);
+}
+
+.theme-icon {
+    font-size: 20px;
+}
+
+.theme-label {
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.light-card.active {
+    background: #ffffff;
+    color: #121214;
+    border-color: #ffffff;
+    box-shadow: 0 4px 15px rgba(255, 255, 255, 0.15);
+}
+
+.dark-card.active {
+    background: var(--accent-color);
+    color: #121214;
+    border-color: var(--accent-color);
+    box-shadow: 0 4px 15px rgba(var(--accent-rgb), 0.25);
+}
+
+.kitty-badge {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 10px;
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+.kitty-icon {
+    color: var(--accent-color);
+    font-size: 13px;
+}
+
+.section-divider {
+    border: none;
+    border-top: 1px solid var(--separator-color);
+    margin: 4px 0;
 }
 
 /* Footer alignment */
