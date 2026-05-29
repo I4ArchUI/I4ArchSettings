@@ -57,23 +57,17 @@ const computedDevices = computed(() => {
     if (list.length === 0) return [];
     
     return list.map((dev, index) => {
-        // Distribute angles evenly to prevent overlaps
         const angle = (2 * Math.PI * index) / list.length;
         
-        // Map RSSI: typically ranges from -100 (weak) to -30 (strong)
-        const rssi = dev.rssi ?? -75; // default to -75 if null
+        const rssi = dev.rssi ?? -75; 
         const normalizedRssi = Math.max(-100, Math.min(-30, rssi));
         
-        // Map RSSI to distance from center (range: 110px to 240px from the 300,300 center)
-        const percentage = (-normalizedRssi - 30) / 70; // 0 (strongest) to 1 (weakest)
-        const distance = 100 + percentage * 140; // 100px to 240px
-        
-        // Calculate coordinates on a 600x600 canvas
-        const x = 300 + distance * Math.cos(angle);
-        const y = 300 + distance * Math.sin(angle);
-        
-        // Map RSSI to bubble diameter (range: 40px to 72px)
-        const size = 72 - percentage * 32;
+        const percentage = (-normalizedRssi - 30) / 70; 
+        const distance = 120 + percentage * 150; 
+
+        const x = 350 + distance * Math.cos(angle);
+        const y = 350 + distance * Math.sin(angle);
+        const size = 115 - percentage * 35;
         
         return {
             ...dev,
@@ -83,7 +77,6 @@ const computedDevices = computed(() => {
             distance,
             angle,
             rssiLabel: rssi,
-            // Assign float animations based on index for random organic feel
             floatClass: `float-anim-${(index % 3) + 1}`
         };
     });
@@ -114,30 +107,20 @@ const computedDevices = computed(() => {
                 </div>
                 <p>No devices found</p>
                 <small>Make sure your Bluetooth devices are in pairing mode.</small>
-            </div>
+             </div>
         </SettingsCard>
 
         <!-- HIGH TECH RADAR BOARD -->
-        <div v-else class="radar-container glass-panel">
+        <div v-else class="radar-container">
             <div class="radar-board">
                 <!-- SVG BACKGROUND NETWORK AND CONCENTRIC RINGS -->
-                <svg class="radar-svg" viewBox="0 0 600 600">
-                    <!-- Range concentric rings -->
-                    <circle cx="300" cy="300" r="100" class="radar-ring" />
-                    <circle cx="300" cy="300" r="170" class="radar-ring" />
-                    <circle cx="300" cy="300" r="240" class="radar-ring" />
-                    
-                    <!-- Dynamic range labels -->
-                    <text x="305" y="208" class="radar-label">-50 dBm</text>
-                    <text x="305" y="138" class="radar-label">-70 dBm</text>
-                    <text x="305" y="68" class="radar-label">-90 dBm</text>
-                    
+                <svg class="radar-svg" viewBox="0 0 700 700">
                     <!-- Connection lines -->
                     <line 
                         v-for="dev in computedDevices" 
                         :key="'line-' + dev.mac"
-                        x1="300" 
-                        y1="300" 
+                        x1="350" 
+                        y1="350" 
                         :x2="dev.x" 
                         :y2="dev.y" 
                         class="connection-line"
@@ -174,7 +157,11 @@ const computedDevices = computed(() => {
                     @click="connect(dev)"
                 >
                     <div class="device-bubble">
-                        <i :class="getDeviceIcon(dev.icon)" class="device-icon"></i>
+                        <!-- BOTH DEVICE NAME AND ICON RENDERED INSIDE BUBBLE -->
+                        <div class="bubble-inner-content">
+                            <i :class="getDeviceIcon(dev.icon)" class="device-icon"></i>
+                            <span class="device-name-label">{{ dev.name || 'Unknown' }}</span>
+                        </div>
                         
                         <!-- Connection status indicator inside bubble -->
                         <span v-if="dev.connected" class="status-indicator connected">
@@ -245,13 +232,13 @@ const computedDevices = computed(() => {
 }
 
 .radar-container {
-    width: 600px;
-    height: 600px;
+    width: 700px;
+    height: 700px;
     position: relative;
     border-radius: 20px;
     padding: 0;
     overflow: hidden;
-    background: rgba(255, 255, 255, 0.01) !important;
+    /* background: rgba(255, 255, 255, 0.01) !important; */
 }
 
 .radar-board {
@@ -339,9 +326,9 @@ const computedDevices = computed(() => {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    background: rgba(255, 255, 255, 0.03) !important;
-    border: 1px solid rgba(255, 255, 255, 0.08) !important;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
+    background: rgba(30, 30, 30, 0.85) !important;
+    border: 1px solid rgba(255, 255, 255, 0.12) !important;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4) !important;
     padding: 10px;
     text-align: center;
     cursor: default;
@@ -416,60 +403,85 @@ const computedDevices = computed(() => {
     align-items: center;
     justify-content: center;
     position: relative;
-    backdrop-filter: blur(10px);
+    backdrop-filter: blur(12px);
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Color Coding Rules */
+/* Inner content alignment */
+.bubble-inner-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 85%;
+    height: 85%;
+    gap: 6px;
+    text-align: center;
+}
+
+.device-name-label {
+    font-size: 9px;
+    font-weight: 600;
+    color: var(--text-primary);
+    width: 90%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    opacity: 0.9;
+}
+
+.device-icon {
+    font-size: 1.2rem;
+    transition: all 0.3s ease;
+}
+
+.device-bubble-wrap:hover .device-icon {
+    transform: scale(1.1);
+}
+
+/* Color Coding Rules - Not too transparent (opacity 0.85) */
 /* CONNECTED BUBBLE - YELLOW (AMBER/GOLD) */
 .device-bubble-wrap.is-connected .device-bubble {
-    background: rgba(229, 193, 151, 0.12);
-    border: 1px solid rgba(229, 193, 151, 0.4);
+    background: rgba(30, 26, 22, 0.85);
+    border: 1.5px solid rgba(229, 193, 151, 0.55);
     color: var(--accent-color);
-    box-shadow: 0 0 15px rgba(229, 193, 151, 0.2), inset 0 0 8px rgba(229, 193, 151, 0.1);
+    box-shadow: 0 0 15px rgba(229, 193, 151, 0.25), inset 0 0 8px rgba(229, 193, 151, 0.15);
 }
 
 .device-bubble-wrap.is-connected:hover .device-bubble {
-    box-shadow: 0 0 25px rgba(229, 193, 151, 0.45), inset 0 0 10px rgba(229, 193, 151, 0.2);
-    transform: scale(1.1);
+    background: rgba(34, 29, 24, 0.9);
+    border-color: var(--accent-color);
+    box-shadow: 0 0 25px rgba(229, 193, 151, 0.45);
+    transform: scale(1.05);
 }
 
 /* CONNECTING BUBBLE - FLASHING YELLOW */
 @keyframes connect-glow {
-    0% { box-shadow: 0 0 10px rgba(229, 193, 151, 0.2); }
-    50% { box-shadow: 0 0 25px rgba(229, 193, 151, 0.5); }
-    100% { box-shadow: 0 0 10px rgba(229, 193, 151, 0.2); }
+    0% { box-shadow: 0 0 10px rgba(229, 193, 151, 0.25); border-color: rgba(229, 193, 151, 0.4); }
+    50% { box-shadow: 0 0 25px rgba(229, 193, 151, 0.55); border-color: var(--accent-color); }
+    100% { box-shadow: 0 0 10px rgba(229, 193, 151, 0.25); border-color: rgba(229, 193, 151, 0.4); }
 }
 .device-bubble-wrap.is-connecting .device-bubble {
-    background: rgba(229, 193, 151, 0.15);
-    border: 1.5px solid var(--accent-color);
+    background: rgba(30, 26, 22, 0.85);
+    border: 1.5px solid rgba(229, 193, 151, 0.4);
     color: var(--accent-color);
     animation: connect-glow 1.5s infinite;
 }
 
 /* UNCONNECTED BUBBLE - BLUE */
 .device-bubble-wrap:not(.is-connected):not(.is-connecting) .device-bubble {
-    background: rgba(41, 182, 246, 0.12);
-    border: 1px solid rgba(41, 182, 246, 0.3);
+    background: rgba(20, 24, 30, 0.85);
+    border: 1.5px solid rgba(41, 182, 246, 0.45);
     color: #29b6f6;
-    box-shadow: 0 0 10px rgba(41, 182, 246, 0.1);
+    box-shadow: 0 0 12px rgba(41, 182, 246, 0.15);
 }
 
 .device-bubble-wrap:not(.is-connected):not(.is-connecting):hover .device-bubble {
-    background: rgba(41, 182, 246, 0.18);
-    border-color: rgba(41, 182, 246, 0.5);
-    box-shadow: 0 0 20px rgba(41, 182, 246, 0.35);
+    background: rgba(23, 28, 36, 0.9);
+    border-color: #29b6f6;
+    box-shadow: 0 0 22px rgba(41, 182, 246, 0.35);
     color: #4fc3f7;
-    transform: scale(1.1);
-}
-
-.device-icon {
-    font-size: 40%; /* dynamic sized relative to bubble size */
-    transition: all 0.3s ease;
-}
-
-.device-bubble-wrap:hover .device-icon {
-    transform: scale(1.15);
+    transform: scale(1.05);
 }
 
 /* Status Indicator Mini-Bages */
@@ -484,7 +496,7 @@ const computedDevices = computed(() => {
     align-items: center;
     justify-content: center;
     font-size: 9px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.15);
     box-shadow: 0 2px 5px rgba(0,0,0,0.3);
 }
 
@@ -510,7 +522,7 @@ const computedDevices = computed(() => {
     width: 160px;
     padding: 10px 12px !important;
     border-radius: 10px !important;
-    background: rgba(26, 26, 26, 0.85) !important;
+    background: rgba(26, 26, 26, 0.88) !important;
     border: 1px solid rgba(255, 255, 255, 0.08) !important;
     box-shadow: 0 10px 25px rgba(0,0,0,0.5) !important;
     transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);

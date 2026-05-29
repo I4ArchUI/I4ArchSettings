@@ -37,6 +37,7 @@ export function useBluetoothViewModel() {
         try {
             isEnabled.value = await invoke('get_bluetooth_status');
         } catch (e) {
+            console.error("Failed to check bluetooth status:", e);
         }
     };
 
@@ -66,6 +67,7 @@ export function useBluetoothViewModel() {
         try {
             devices.value = await invoke('get_bluetooth_devices');
         } catch (e) {
+            console.error("Failed to fetch bluetooth devices:", e);
         } finally {
             loading.value = false;
         }
@@ -151,6 +153,6 @@ export function useBluetoothViewModel() {
         connectingMac,
         sortedDevices,
         localName,
-        scan: refreshDevices // exposing as 'scan' for backward compatibility if template uses it, though we should update template
+        scan: refreshDevices // exposing as 'scan' for backward compatibility
     };
 }
