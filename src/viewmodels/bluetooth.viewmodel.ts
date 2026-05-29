@@ -14,6 +14,7 @@ export function useBluetoothViewModel() {
     const devices = ref<BluetoothDevice[]>([]);
     const loading = ref(false);
     const connectingMac = ref<string | null>(null);
+    const localName = ref("Arch Linux PC");
 
     // Computed property for sorted devices: Connected > Connecting > Disconnected
     const sortedDevices = computed(() => {
@@ -36,6 +37,7 @@ export function useBluetoothViewModel() {
         try {
             isEnabled.value = await invoke('get_bluetooth_status');
         } catch (e) {
+            console.error("Failed to check bluetooth status:", e);
         }
     };
 
@@ -65,6 +67,7 @@ export function useBluetoothViewModel() {
         try {
             devices.value = await invoke('get_bluetooth_devices');
         } catch (e) {
+            console.error("Failed to fetch bluetooth devices:", e);
         } finally {
             loading.value = false;
         }
@@ -124,6 +127,11 @@ export function useBluetoothViewModel() {
 
     onMounted(async () => {
         await checkStatus();
+        try {
+            localName.value = await invoke('get_local_adapter_name');
+        } catch (e) {
+            console.error("Failed to get local adapter name:", e);
+        }
         if (isEnabled.value) {
             await startScan();
             refreshDevices();
@@ -144,6 +152,7 @@ export function useBluetoothViewModel() {
         connect,
         connectingMac,
         sortedDevices,
-        scan: refreshDevices // exposing as 'scan' for backward compatibility if template uses it, though we should update template
+        localName,
+        scan: refreshDevices // exposing as 'scan' for backward compatibility
     };
 }
