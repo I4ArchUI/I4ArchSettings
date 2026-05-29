@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, onUnmounted } from 'vue';
+import { ref, watch, onMounted, onUnmounted } from 'vue';
 import { useVpnViewModel } from '../viewmodels/vpn.viewmodel';
 import LoadingState from '@/components/LoadingState.vue';
 import PageLayout from '../components/common/PageLayout.vue';
@@ -20,10 +20,49 @@ const {
 
 onMounted(() => {
     window.addEventListener('shortcut-add', openAddModal);
+    window.addEventListener('keydown', handleListKeyDown);
 });
 
 onUnmounted(() => {
     window.removeEventListener('shortcut-add', openAddModal);
+    window.removeEventListener('keydown', handleListKeyDown);
+});
+
+const selectedIndex = ref(0);
+
+const handleListKeyDown = (e: KeyboardEvent) => {
+    const activeElement = document.activeElement;
+    const isTyping = activeElement && (
+        activeElement.tagName === 'INPUT' ||
+        activeElement.tagName === 'TEXTAREA' ||
+        activeElement.tagName === 'SELECT' ||
+        activeElement.getAttribute('contenteditable') === 'true'
+    );
+    if (isTyping) return;
+
+    if (showAddModal.value) return;
+
+    if (sortedConnections.value.length === 0) return;
+
+    if (e.key === 'ArrowDown') {
+        selectedIndex.value = (selectedIndex.value + 1) % sortedConnections.value.length;
+        e.preventDefault();
+    } else if (e.key === 'ArrowUp') {
+        selectedIndex.value = (selectedIndex.value - 1 + sortedConnections.value.length) % sortedConnections.value.length;
+        e.preventDefault();
+    } else if (e.key === 'Enter') {
+        const conn = sortedConnections.value[selectedIndex.value];
+        if (conn) {
+            toggleConnection(conn);
+        }
+        e.preventDefault();
+    }
+};
+
+watch(sortedConnections, (newVal) => {
+    if (selectedIndex.value >= newVal.length) {
+        selectedIndex.value = Math.max(0, newVal.length - 1);
+    }
 });
 
 /**
@@ -110,9 +149,10 @@ const getVpnTypeDetails = (typeName: string) => {
         <div v-else class="settings-card glass-panel" style="padding: 0;">
              <div class="settings-group-list">
                 <div 
-                    v-for="conn in sortedConnections" 
+                    v-for="(conn, idx) in sortedConnections" 
                     :key="conn.uuid"
                     class="settings-item"
+                    :class="{ 'selected': idx === selectedIndex }"
                     @click="toggleConnection(conn)"
                 >
                     <!-- Vibrant dynamic colored glass icon -->
@@ -531,5 +571,10 @@ select.form-control {
 .btn-secondary:hover {
     background-color: var(--bg-hover);
     color: var(--text-primary);
+}
+
+.settings-item.selected {
+    background-color: var(--item-hover-bg) !important;
+    box-shadow: inset 3px 0 0 0 var(--accent-color) !important;
 }
 </style>
