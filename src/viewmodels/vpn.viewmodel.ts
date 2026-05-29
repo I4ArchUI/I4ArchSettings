@@ -17,10 +17,14 @@ export function useVpnViewModel() {
     // Modal and form state for adding new connections
     const showAddModal = ref(false);
     const formData = ref({
-        type: 'openvpn',
+        mode: 'import', // 'import' or 'manual'
+        type: 'openvpn', // 'openvpn', 'wireguard', 'openconnect', 'l2tp', 'pptp'
+        name: '',
         filePath: '',
+        gateway: '',
         username: '',
-        password: ''
+        password: '',
+        psk: ''
     });
 
     const { showToast } = useToast();
@@ -111,10 +115,14 @@ export function useVpnViewModel() {
      */
     const openAddModal = () => {
         formData.value = {
+            mode: 'import',
             type: 'openvpn',
+            name: '',
             filePath: '',
+            gateway: '',
             username: '',
-            password: ''
+            password: '',
+            psk: ''
         };
         showAddModal.value = true;
     };
@@ -154,24 +162,51 @@ export function useVpnViewModel() {
      * Saves the current form data as a new VPN connection.
      */
     const saveConnection = async () => {
-        if (!formData.value.filePath) {
-            showToast('Please select a configuration file', 'error');
-            return;
-        }
+        if (formData.value.mode === 'manual') {
+            if (!formData.value.name.trim()) {
+                showToast('Please enter a connection name', 'error');
+                return;
+            }
+            if (!formData.value.gateway.trim()) {
+                showToast('Please enter a gateway / server address', 'error');
+                return;
+            }
+            try {
+                await invoke('create_manual_vpn', {
+                    name: formData.value.name,
+                    vpnType: formData.value.type,
+                    gateway: formData.value.gateway,
+                    username: formData.value.username || null,
+                    password: formData.value.password || null,
+                    psk: formData.value.psk || null
+                });
 
-        try {
-            await invoke('import_vpn', {
-                filePath: formData.value.filePath,
-                vpnType: formData.value.type,
-                username: formData.value.username || null,
-                password: formData.value.password || null
-            });
+                showToast('VPN created successfully', 'success');
+                showAddModal.value = false;
+                await fetchConnections();
+            } catch (e) {
+                showToast('Failed to create VPN: ' + e, 'error');
+            }
+        } else {
+            if (!formData.value.filePath) {
+                showToast('Please select a configuration file', 'error');
+                return;
+            }
 
-            showToast('VPN imported successfully', 'success');
-            showAddModal.value = false;
-            await fetchConnections();
-        } catch (e) {
-            showToast('Failed to import VPN: ' + e, 'error');
+            try {
+                await invoke('import_vpn', {
+                    filePath: formData.value.filePath,
+                    vpnType: formData.value.type,
+                    username: formData.value.username || null,
+                    password: formData.value.password || null
+                });
+
+                showToast('VPN imported successfully', 'success');
+                showAddModal.value = false;
+                await fetchConnections();
+            } catch (e) {
+                showToast('Failed to import VPN: ' + e, 'error');
+            }
         }
     };
 
