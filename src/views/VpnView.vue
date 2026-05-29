@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { onMounted, onUnmounted } from 'vue';
 import { useVpnViewModel } from '../viewmodels/vpn.viewmodel';
 import LoadingState from '@/components/LoadingState.vue';
 import PageLayout from '../components/common/PageLayout.vue';
@@ -16,6 +17,14 @@ const {
     pickFile,
     saveConnection
 } = useVpnViewModel();
+
+onMounted(() => {
+    window.addEventListener('shortcut-add', openAddModal);
+});
+
+onUnmounted(() => {
+    window.removeEventListener('shortcut-add', openAddModal);
+});
 
 /**
  * Returns dynamic, harmonized color schemes and icons for each VPN type.
@@ -81,6 +90,7 @@ const getVpnTypeDetails = (typeName: string) => {
         <button class="action-btn" @click="openAddModal">
             <i class="pi pi-plus" style="margin-right: 6px;"></i>
             Add Connection
+            <span class="kbd-hint"><kbd>Alt</kbd>+<kbd>N</kbd></span>
         </button>
     </template>
     
