@@ -139,7 +139,7 @@ const { searchQuery } = useSearch();
     height: 36px;
     background: rgba(255, 255, 255, 0.05);
     border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 18px;
+    border-radius: 22px;
     padding: 0 14px;
     transition: all 0.2s ease;
 }

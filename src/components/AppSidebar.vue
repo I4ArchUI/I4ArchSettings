@@ -84,7 +84,7 @@ const isActive = (item: any) => {
     align-items: center;
     padding: 10px 14px;
     margin-bottom: 4px;
-    border-radius: 10px;
+    border-radius: 14px;
     cursor: pointer;
     transition: color 0.45s cubic-bezier(0.25, 0.46, 0.45, 0.94),
                 transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
@@ -100,7 +100,7 @@ const isActive = (item: any) => {
     content: '';
     position: absolute;
     inset: 0;
-    border-radius: 10px;
+    border-radius: 14px;
     background: rgba(255, 255, 255, 0.06);
     backdrop-filter: blur(10px);
     transform: translateX(-100%);

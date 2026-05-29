@@ -12,8 +12,8 @@
   --accent-color: #e5c197;
   --accent-rgb: 229, 193, 151;
   --sidebar-width: 260px;
-  --border-radius: 12px;
-  --window-border-radius: 16px;
+  --border-radius: 16px;
+  --window-border-radius: 22px;
 
   /* Item states */
   --item-hover-bg: rgba(255, 255, 255, 0.08);
@@ -149,7 +149,7 @@ input[type=number] {
   border-top-color: var(--card-border-top, rgba(255, 255, 255, 0.18));
   backdrop-filter: var(--glass-blur);
   -webkit-backdrop-filter: var(--glass-blur);
-  border-radius: 16px;
+  border-radius: 20px;
   overflow: hidden;
   box-shadow: var(--shadow-card);
   display: flex;
@@ -189,9 +189,9 @@ input[type=number] {
 
 /* --- Icons --- */
 .info-icon-wrapper {
-  width: 44px;
-  height: 44px;
-  border-radius: 12px;
+  width: 46px;
+  height: 46px;
+  border-radius: 14px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -214,7 +214,7 @@ input[type=number] {
   justify-content: center;
   gap: 8px;
   padding: 10px 20px;
-  border-radius: 10px;
+  border-radius: 12px;
   font-weight: 600;
   cursor: pointer;
   border: none;
@@ -276,7 +276,7 @@ input[type=number] {
 .icon-btn {
   width: 32px;
   height: 32px;
-  border-radius: 8px;
+  border-radius: 10px;
   border: none;
   background: transparent;
   color: var(--text-secondary);
@@ -306,7 +306,7 @@ input[type=number] {
   border: 1px solid rgba(255, 255, 255, 0.1);
   color: var(--text-primary);
   padding: 8px 12px;
-  border-radius: 8px;
+  border-radius: 10px;
   font-size: 0.9rem;
   height: 40px;
   transition: all 0.2s;
