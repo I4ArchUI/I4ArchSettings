@@ -3,7 +3,7 @@
  * Contains business logic for Bluetooth management
  */
 
-import { ref, computed, onMounted, onUnmounted } from 'vue';
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
 import { invoke } from '@tauri-apps/api/core';
 import type { BluetoothDevice } from '../models/bluetooth.model';
 import { useToast } from '../composables/useToast';
@@ -110,6 +110,46 @@ export function useBluetoothViewModel() {
         }
     };
 
+    const triggerToggle = () => {
+        isEnabled.value = !isEnabled.value;
+        toggleBluetooth();
+    };
+
+    const selectedIndex = ref(0);
+
+    const handleListKeyDown = (e: KeyboardEvent) => {
+        const activeElement = document.activeElement;
+        const isTyping = activeElement && (
+            activeElement.tagName === 'INPUT' ||
+            activeElement.tagName === 'TEXTAREA' ||
+            activeElement.tagName === 'SELECT' ||
+            activeElement.getAttribute('contenteditable') === 'true'
+        );
+        if (isTyping) return;
+
+        if (!isEnabled.value || sortedDevices.value.length === 0) return;
+
+        if (e.key === 'ArrowDown' || e.key === 'ArrowRight') {
+            selectedIndex.value = (selectedIndex.value + 1) % sortedDevices.value.length;
+            e.preventDefault();
+        } else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') {
+            selectedIndex.value = (selectedIndex.value - 1 + sortedDevices.value.length) % sortedDevices.value.length;
+            e.preventDefault();
+        } else if (e.key === 'Enter') {
+            const dev = sortedDevices.value[selectedIndex.value];
+            if (dev) {
+                connect(dev);
+            }
+            e.preventDefault();
+        }
+    };
+
+    watch(sortedDevices, (newVal) => {
+        if (selectedIndex.value >= newVal.length) {
+            selectedIndex.value = Math.max(0, newVal.length - 1);
+        }
+    });
+
     // --- Lifecycle ---
     let scanInterval: ReturnType<typeof setInterval> | null = null;
 
@@ -137,14 +177,19 @@ export function useBluetoothViewModel() {
             refreshDevices();
             startRefreshInterval();
         }
+        window.addEventListener('shortcut-toggle', triggerToggle);
+        window.addEventListener('keydown', handleListKeyDown);
     });
 
     onUnmounted(() => {
         stopRefreshInterval();
         stopScan();
+        window.removeEventListener('shortcut-toggle', triggerToggle);
+        window.removeEventListener('keydown', handleListKeyDown);
     });
 
     return {
+        selectedIndex,
         isEnabled,
         devices,
         loading,

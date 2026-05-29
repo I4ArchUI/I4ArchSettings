@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import { computed, ref, watch, onMounted, onUnmounted } from 'vue';
+import { computed } from 'vue';
 import { useBluetoothViewModel } from '../viewmodels/bluetooth.viewmodel';
 import LoadingState from '@/components/LoadingState.vue';
 import PageLayout from '../components/common/PageLayout.vue';
 import SettingsCard from '../components/common/SettingsCard.vue';
 
 const {
+    selectedIndex,
     isEnabled,
     sortedDevices,
     loading,
@@ -80,56 +81,6 @@ const computedDevices = computed(() => {
             floatClass: `float-anim-${(index % 3) + 1}`
         };
     });
-});
-
-const triggerToggle = () => {
-    isEnabled.value = !isEnabled.value;
-    toggleBluetooth();
-};
-
-onMounted(() => {
-    window.addEventListener('shortcut-toggle', triggerToggle);
-    window.addEventListener('keydown', handleListKeyDown);
-});
-
-onUnmounted(() => {
-    window.removeEventListener('shortcut-toggle', triggerToggle);
-    window.removeEventListener('keydown', handleListKeyDown);
-});
-
-const selectedIndex = ref(0);
-
-const handleListKeyDown = (e: KeyboardEvent) => {
-    const activeElement = document.activeElement;
-    const isTyping = activeElement && (
-        activeElement.tagName === 'INPUT' ||
-        activeElement.tagName === 'TEXTAREA' ||
-        activeElement.tagName === 'SELECT' ||
-        activeElement.getAttribute('contenteditable') === 'true'
-    );
-    if (isTyping) return;
-
-    if (!isEnabled.value || sortedDevices.value.length === 0) return;
-
-    if (e.key === 'ArrowDown' || e.key === 'ArrowRight') {
-        selectedIndex.value = (selectedIndex.value + 1) % sortedDevices.value.length;
-        e.preventDefault();
-    } else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') {
-        selectedIndex.value = (selectedIndex.value - 1 + sortedDevices.value.length) % sortedDevices.value.length;
-        e.preventDefault();
-    } else if (e.key === 'Enter') {
-        const dev = sortedDevices.value[selectedIndex.value];
-        if (dev) {
-            connect(dev);
-        }
-        e.preventDefault();
-    }
-};
-
-watch(sortedDevices, (newVal) => {
-    if (selectedIndex.value >= newVal.length) {
-        selectedIndex.value = Math.max(0, newVal.length - 1);
-    }
 });
 </script>
 
