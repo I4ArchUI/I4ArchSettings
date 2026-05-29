@@ -18,6 +18,11 @@ pub struct WifiConfig {
     pub prefix: i32,
     pub gateway: String,
     pub dns: String,
+    pub bssid: Option<String>,
+    pub frequency: Option<String>,
+    pub speed: Option<String>,
+    pub interface: Option<String>,
+    pub mac_address: Option<String>,
 }
 
 // =========================================================================
@@ -235,12 +240,90 @@ mod linux_impl {
             }
         }
 
+        // Live connection statistics via D-Bus properties
+        let mut bssid = None;
+        let mut frequency = None;
+        let mut speed = None;
+        let mut interface = None;
+        let mut mac_address = None;
+
+        if let Ok(nm_proxy) = zbus::Proxy::new(
+            &conn,
+            "org.freedesktop.NetworkManager",
+            "/org/freedesktop/NetworkManager",
+            "org.freedesktop.NetworkManager",
+        ).await {
+            if let Ok(device_paths) = nm_proxy.get_property::<Vec<zbus::zvariant::OwnedObjectPath>>("Devices").await {
+                for dev_path in device_paths {
+                    if let Ok(dev_proxy) = zbus::Proxy::new(
+                        &conn,
+                        "org.freedesktop.NetworkManager",
+                        &dev_path,
+                        "org.freedesktop.NetworkManager.Device",
+                    ).await {
+                        let dev_type = dev_proxy.get_property::<u32>("DeviceType").await.unwrap_or(0);
+                        let state = dev_proxy.get_property::<u32>("State").await.unwrap_or(0);
+
+                        if dev_type == 2 && state == 100 { // 2 = Wireless, 100 = Activated
+                            let iface = dev_proxy.get_property::<String>("Interface").await.unwrap_or_default();
+                            let hw_addr = dev_proxy.get_property::<String>("HwAddress").await.unwrap_or_default();
+
+                            if let Ok(wifi_proxy) = zbus::Proxy::new(
+                                &conn,
+                                "org.freedesktop.NetworkManager",
+                                &dev_path,
+                                "org.freedesktop.NetworkManager.Device.Wireless",
+                            ).await {
+                                if let Ok(ap_path) = wifi_proxy.get_property::<zbus::zvariant::OwnedObjectPath>("ActiveAccessPoint").await {
+                                    if ap_path.as_str() != "/" {
+                                        if let Ok(ap_proxy) = zbus::Proxy::new(
+                                            &conn,
+                                            "org.freedesktop.NetworkManager",
+                                            &ap_path,
+                                            "org.freedesktop.NetworkManager.AccessPoint",
+                                        ).await {
+                                            let ssid_bytes = ap_proxy.get_property::<Vec<u8>>("Ssid").await.unwrap_or_default();
+                                            let ap_ssid = String::from_utf8(ssid_bytes).unwrap_or_default();
+
+                                            // If the active AP's SSID matches, populate details
+                                            if ap_ssid == ssid {
+                                                interface = Some(iface);
+                                                mac_address = Some(hw_addr);
+                                                bssid = Some(ap_proxy.get_property::<String>("HwAddress").await.unwrap_or_default());
+                                                
+                                                let freq_mhz = ap_proxy.get_property::<u32>("Frequency").await.unwrap_or(0);
+                                                if freq_mhz > 0 {
+                                                    let band = if freq_mhz > 4900 { "5 GHz" } else { "2.4 GHz" };
+                                                    frequency = Some(format!("{} ({} MHz)", band, freq_mhz));
+                                                }
+
+                                                let bitrate = wifi_proxy.get_property::<u32>("Bitrate").await.unwrap_or(0);
+                                                if bitrate > 0 {
+                                                    speed = Some(format!("{} Mbps", bitrate / 1000));
+                                                }
+                                                break;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
         Ok(WifiConfig {
             method,
             ip_address,
             prefix,
             gateway,
             dns,
+            bssid,
+            frequency,
+            speed,
+            interface,
+            mac_address,
         })
     }
 
@@ -365,6 +448,11 @@ mod mock_impl {
                 prefix: 24,
                 gateway: "192.168.1.1".to_string(),
                 dns: "8.8.8.8, 1.1.1.1".to_string(),
+                bssid: Some("00:11:22:33:44:55".to_string()),
+                frequency: Some("5 GHz (5180 MHz)".to_string()),
+                speed: Some("866 Mbps".to_string()),
+                interface: Some("wlan0".to_string()),
+                mac_address: Some("a0:b1:c2:d3:e4:f5".to_string()),
             });
             map
         }))
@@ -451,12 +539,39 @@ mod mock_impl {
         if let Some(conf) = lock.get(&ssid) {
             Ok(conf.clone())
         } else {
+            let (bssid, frequency, speed) = match ssid.as_str() {
+                "Demo_Enterprise_802.1X" => (
+                    Some("00:11:22:aa:bb:cc".to_string()),
+                    Some("5 GHz (5240 MHz)".to_string()),
+                    Some("1300 Mbps".to_string()),
+                ),
+                "Arch_AP_Guest" => (
+                    Some("00:11:22:66:77:88".to_string()),
+                    Some("2.4 GHz (2437 MHz)".to_string()),
+                    Some("144 Mbps".to_string()),
+                ),
+                "Coffee_Shop_Free" => (
+                    Some("00:11:22:11:22:33".to_string()),
+                    Some("2.4 GHz (2412 MHz)".to_string()),
+                    Some("54 Mbps".to_string()),
+                ),
+                _ => (
+                    Some("00:11:22:33:44:55".to_string()),
+                    Some("5 GHz (5180 MHz)".to_string()),
+                    Some("866 Mbps".to_string()),
+                ),
+            };
             Ok(WifiConfig {
                 method: "auto".to_string(),
                 ip_address: "".to_string(),
                 prefix: 24,
                 gateway: "".to_string(),
                 dns: "".to_string(),
+                bssid,
+                frequency,
+                speed,
+                interface: Some("wlan0".to_string()),
+                mac_address: Some("a0:b1:c2:d3:e4:f5".to_string()),
             })
         }
     }
