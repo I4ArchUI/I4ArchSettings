@@ -27,6 +27,7 @@ pub struct BluetoothDevice {
     connected: bool,
     paired: bool,
     icon: Option<String>,
+    rssi: Option<i16>,
 }
 
 /// Helper function to retrieve the default Bluetooth adapter.
@@ -118,6 +119,7 @@ pub async fn get_bluetooth_devices() -> Result<Vec<BluetoothDevice>, String> {
             let connected = device.is_connected().await.unwrap_or(false);
             let paired = device.is_paired().await.unwrap_or(false);
             let icon = device.icon().await.unwrap_or(None);
+            let rssi = device.rssi().await.unwrap_or(None);
 
             result.push(BluetoothDevice {
                 mac: addr_str,
@@ -125,6 +127,7 @@ pub async fn get_bluetooth_devices() -> Result<Vec<BluetoothDevice>, String> {
                 connected,
                 paired,
                 icon,
+                rssi,
             });
         }
     }
@@ -145,4 +148,12 @@ pub async fn connect_bluetooth(mac: String) -> Result<String, String> {
     } else {
         Ok("Already connected".to_string())
     }
+}
+
+/// Retrieves the friendly alias of the local Bluetooth adapter.
+#[tauri::command]
+pub async fn get_local_adapter_name() -> Result<String, String> {
+    let adapter = get_adapter().await?;
+    let alias = adapter.alias().await.unwrap_or_else(|_| "Arch Linux PC".to_string());
+    Ok(alias)
 }

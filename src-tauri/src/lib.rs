@@ -21,7 +21,7 @@ use modules::hyprland::waybar::{get_waybar_position, set_waybar_position};
 use modules::settings::{get_app_settings, save_app_settings};
 use modules::systems::bluetooth::{
     connect_bluetooth, get_bluetooth_devices, get_bluetooth_status, start_scan, stop_scan,
-    toggle_bluetooth, BluetoothState,
+    toggle_bluetooth, get_local_adapter_name, BluetoothState,
 };
 use modules::systems::system::{check_app_installed, get_gtk_theme, get_system_info};
 use modules::systems::vpn::{connect_vpn, disconnect_vpn, get_vpn_connections, import_vpn, create_manual_vpn};
@@ -48,6 +48,7 @@ pub fn run() {
             stop_scan,
             get_bluetooth_devices,
             connect_bluetooth,
+            get_local_adapter_name,
             get_gtk_theme,
             get_system_info,
             check_app_installed,
