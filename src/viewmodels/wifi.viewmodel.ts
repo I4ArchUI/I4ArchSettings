@@ -88,37 +88,8 @@ export function useWifiViewModel() {
         try {
             networks.value = await invoke('scan_wifi');
         } catch (e) {
-            console.warn("Tauri Wi-Fi scan failed, using mock demo networks:", e);
-            networks.value = [
-                {
-                    ssid: "Arch_AP_Secured",
-                    security: "WPA/WPA2",
-                    bars: "icon-wifi-strong",
-                    signal: 95,
-                    active: false
-                },
-                {
-                    ssid: "Demo_Enterprise_802.1X",
-                    security: "WPA-Enterprise",
-                    bars: "icon-wifi-strong",
-                    signal: 88,
-                    active: false
-                },
-                {
-                    ssid: "Demo_Public_Free",
-                    security: "",
-                    bars: "icon-wifi-medium",
-                    signal: 68,
-                    active: false
-                },
-                {
-                    ssid: "Coffee_Shop_5G",
-                    security: "WPA2",
-                    bars: "icon-wifi-weak",
-                    signal: 35,
-                    active: false
-                }
-            ];
+            console.error("Tauri Wi-Fi scan failed:", e);
+            networks.value = [];
         } finally {
             loading.value = false;
         }
@@ -138,14 +109,8 @@ export function useWifiViewModel() {
                 stopScanInterval();
             }
         } catch (e) {
-            console.warn("Tauri Wi-Fi toggle failed, using mock toggle action:", e);
-            if (isEnabled.value) {
-                await scan(false);
-                startScanInterval();
-            } else {
-                networks.value = [];
-                stopScanInterval();
-            }
+            console.error("Tauri Wi-Fi toggle failed:", e);
+            showToast(`Failed to toggle Wi-Fi: ${e}`, 'error');
         }
     };
 
@@ -170,13 +135,8 @@ export function useWifiViewModel() {
                 await scan(true);
                 showToast(`Connected to ${net.ssid}`, 'success');
             } catch (e: any) {
-                console.warn('Tauri open connect failed, simulating mock connection:', e);
-                // Simulate connection in browser
-                networks.value = networks.value.map(n => ({
-                    ...n,
-                    active: n.ssid === net.ssid
-                }));
-                showToast(`Connected to ${net.ssid} (Demo Mode)`, 'success');
+                console.error('Tauri open connect failed:', e);
+                showToast(`Failed to connect to ${net.ssid}: ${e}`, 'error');
             } finally {
                 connectingSsid.value = null;
             }
@@ -203,19 +163,9 @@ export function useWifiViewModel() {
             await scan(true);
             showToast(`Connected to ${selectedNetwork.value.ssid}`, 'success');
         } catch (e: any) {
-            console.warn('Tauri password connect failed, checking mock credentials:', e);
-            if (password === 'error') {
-                passwordErrorMsg.value = 'Incorrect password (Demo mode error)';
-                showToast('Authentication failed', 'error');
-            } else {
-                // Simulate connection
-                networks.value = networks.value.map(n => ({
-                    ...n,
-                    active: n.ssid === selectedNetwork.value!.ssid
-                }));
-                showPasswordModal.value = false;
-                showToast(`Connected to ${selectedNetwork.value.ssid} (Demo Mode)`, 'success');
-            }
+            console.error('Tauri password connect failed:', e);
+            passwordErrorMsg.value = typeof e === 'string' ? e : e.message || 'Authentication failed';
+            showToast('Authentication failed', 'error');
         } finally {
             connectingPassword.value = false;
             connectingSsid.value = null;
@@ -237,13 +187,13 @@ export function useWifiViewModel() {
             config.value = conf;
             showConfigModal.value = true;
         } catch (e) {
-            console.warn('Tauri config fetch failed, using default configuration values:', e);
+            console.error('Tauri config fetch failed:', e);
             config.value = {
                 method: 'auto',
-                ip_address: '192.168.1.150',
+                ip_address: '',
                 prefix: 24,
-                gateway: '192.168.1.1',
-                dns: '8.8.8.8, 1.1.1.1'
+                gateway: '',
+                dns: ''
             };
             showConfigModal.value = true;
         }
@@ -271,9 +221,8 @@ export function useWifiViewModel() {
             await scan(true);
             showToast('Network settings saved successfully', 'success');
         } catch (e) {
-            console.warn('Tauri config save failed, simulating local save success:', e);
-            showConfigModal.value = false;
-            showToast('Network settings saved (Demo Mode)', 'success');
+            console.error('Tauri config save failed:', e);
+            showToast(`Failed to save settings: ${e}`, 'error');
         } finally {
             savingConfig.value = false;
         }
@@ -289,19 +238,13 @@ export function useWifiViewModel() {
             const conf = await invoke<WifiConfig>('get_wifi_config', { ssid: net.ssid });
             config.value = conf;
         } catch (e) {
-            console.warn('Tauri config fetch failed, using default configuration values:', e);
-            const is5G = net.ssid.includes('5G') || net.ssid.includes('Enterprise');
+            console.error('Tauri config fetch failed:', e);
             config.value = {
                 method: 'auto',
-                ip_address: '192.168.1.150',
+                ip_address: '',
                 prefix: 24,
-                gateway: '192.168.1.1',
-                dns: '8.8.8.8, 1.1.1.1',
-                bssid: is5G ? '00:11:22:aa:bb:cc' : '00:11:22:33:44:55',
-                frequency: is5G ? '5 GHz (5180 MHz)' : '2.4 GHz (2412 MHz)',
-                speed: is5G ? '866 Mbps' : '144 Mbps',
-                interface: 'wlan0',
-                mac_address: 'a0:b1:c2:d3:e4:f5'
+                gateway: '',
+                dns: ''
             };
         }
         showInfoModal.value = true;
