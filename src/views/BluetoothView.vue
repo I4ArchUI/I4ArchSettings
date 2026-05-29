@@ -4,7 +4,6 @@ import { useBluetoothViewModel } from '../viewmodels/bluetooth.viewmodel';
 import LoadingState from '@/components/LoadingState.vue';
 import PageLayout from '../components/common/PageLayout.vue';
 import SettingsCard from '../components/common/SettingsCard.vue';
-import loadingGif from '@/assets/loading-cat.gif';
 
 const {
     isEnabled,
