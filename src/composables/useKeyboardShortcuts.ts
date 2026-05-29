@@ -1,10 +1,8 @@
 import { onMounted, onUnmounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
-import { useToast } from './useToast';
 
 export function useKeyboardShortcuts() {
     const router = useRouter();
-    const { showToast } = useToast();
     const showShortcutsHelp = ref(false);
 
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -102,7 +100,6 @@ export function useKeyboardShortcuts() {
 
             if (path) {
                 router.push(path);
-                showToast(`Navigated to ${pageName}`, 'info');
                 e.preventDefault();
             }
         }
