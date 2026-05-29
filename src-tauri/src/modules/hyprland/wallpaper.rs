@@ -13,7 +13,7 @@ pub fn set_wallpaper(file_path: String) -> Result<(), String> {
         mkdir -p ~/.config/hypr/themes
         rm -f ~/.config/hypr/themes/background.png
         cp "{}" ~/.config/hypr/themes/background.png
-        swww img ~/.config/hypr/themes/background.png --transition-fps 60 --transition-step 255 --transition-type any
+        awww img ~/.config/hypr/themes/background.png --transition-fps 60 --transition-step 255 --transition-type any
         "#,
         file_path
     );
@@ -52,3 +52,76 @@ pub fn get_wallpaper_base64() -> Result<String, String> {
         Err(e) => Err(e.to_string()),
     }
 }
+
+/// Lists all image files inside a specified directory.
+#[tauri::command]
+pub fn list_wallpapers_in_dir(dir_path: String) -> Result<Vec<String>, String> {
+    use std::fs;
+    use std::path::Path;
+
+    let mut resolved_path = dir_path.clone();
+    if resolved_path.starts_with('~') {
+        let home = std::env::var("HOME").unwrap_or_default();
+        resolved_path = resolved_path.replacen('~', &home, 1);
+    }
+
+    let path = Path::new(&resolved_path);
+    if !path.exists() {
+        return Err("Directory does not exist".to_string());
+    }
+    if !path.is_dir() {
+        return Err("Path is not a directory".to_string());
+    }
+
+    let mut images = Vec::new();
+    if let Ok(entries) = fs::read_dir(path) {
+        for entry in entries.flatten() {
+            let file_path = entry.path();
+            if file_path.is_file() {
+                if let Some(ext) = file_path.extension() {
+                    let ext_str = ext.to_string_lossy().to_lowercase();
+                    if ext_str == "png" || ext_str == "jpg" || ext_str == "jpeg" || ext_str == "webp" {
+                        images.push(file_path.to_string_lossy().to_string());
+                    }
+                }
+            }
+        }
+    }
+
+    images.sort();
+    Ok(images)
+}
+
+/// Downloads a wallpaper from a URL and sets it as the active desktop wallpaper.
+#[tauri::command]
+pub fn download_and_set_wallpaper(url: String) -> Result<(), String> {
+    if url.is_empty() {
+        return Err("URL is empty".to_string());
+    }
+
+    let home = std::env::var("HOME").unwrap_or_else(|_| "/home/i4104".to_string());
+    let dest_path = format!("{}/.config/hypr/themes/downloaded_wallpaper.png", home);
+
+    // Download using curl
+    let script = format!(
+        r#"
+        mkdir -p ~/.config/hypr/themes
+        curl -L -s -o "{}" "{}"
+        "#,
+        dest_path, url
+    );
+
+    let output = Command::new("sh")
+        .arg("-c")
+        .arg(&script)
+        .output()
+        .map_err(|e| e.to_string())?;
+
+    if !output.status.success() {
+        return Err(String::from_utf8_lossy(&output.stderr).to_string());
+    }
+
+    set_wallpaper(dest_path)
+}
+
+

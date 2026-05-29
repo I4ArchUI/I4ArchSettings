@@ -1,98 +1,69 @@
 <script setup lang="ts">
-import logo from "../assets/logo.jpg";
 import { useRouter, useRoute } from "vue-router";
+import { useSearch } from "../composables/useSearch";
+import { computed } from "vue";
 
 const router = useRouter();
 const route = useRoute();
+const { searchQuery } = useSearch();
 
-const menuGroups = [
-    {
-        title: 'Network',
-        items: [
-            { label: 'Wi-Fi', icon: 'pi pi-wifi', path: '/wifi', color: '#525252' },
-            { label: 'VPN', icon: 'pi pi-cloud', path: '/vpn', color: '#525252' },
-            { label: 'Bluetooth', icon: 'pi pi-mobile', path: '/bluetooth', color: '#525252' },
-        ]
-    },
-    {
-        title: 'Personalization',
-        items: [
-            { label: 'Displays', icon: 'pi pi-desktop', path: '/displays', color: '#525252' },
-            { label: 'Appearance', icon: 'pi pi-palette', path: '/appearance', color: '#525252' },
-        ]
-    },
-    {
-        title: 'Apps',
-        items: [
-            { label: 'Installed Apps', icon: 'pi pi-th-large', path: '/apps', color: '#525252' },
-            { label: 'Startup Apps', icon: 'pi pi-objects-column', path: '/startup', color: '#525252' },
-        ]
-    },
-    {
-        title: 'System',
-        items: [
-            { label: 'Shortcuts', icon: 'pi pi-address-book', path: '/shortcuts', color: '#525252' },
-            { label: 'Environment', icon: 'pi pi-box', path: '/env', color: '#525252' },
-            { label: 'System Update', icon: 'pi pi-history', path: '/system-update', color: '#525252' },
-        ]
-    },
+const menuItems = [
+    { label: 'About System', icon: 'pi pi-info-circle', path: '/about' },
+    { label: 'Wi-Fi', icon: 'pi pi-wifi', path: '/wifi' },
+    { label: 'VPN', icon: 'pi pi-cloud', path: '/vpn' },
+    { label: 'Bluetooth', icon: 'pi pi-mobile', path: '/bluetooth' },
+    { label: 'Wallpaper & Colors', icon: 'pi pi-palette', path: '/appearance' },
+    { label: 'Displays', icon: 'pi pi-desktop', path: '/displays' },
+    { label: 'Installed Apps', icon: 'pi pi-th-large', path: '/apps' },
+    { label: 'Startup Apps', icon: 'pi pi-cog', path: '/startup' },
+    { label: 'Keybinds', icon: 'pi pi-key', path: '/shortcuts' },
+    { label: 'Environment', icon: 'pi pi-box', path: '/env' },
+    { label: 'System Update', icon: 'pi pi-history', path: '/system-update' },
 ];
+
+// Computed list filtered by the header search query
+const filteredMenuItems = computed(() => {
+    if (!searchQuery.value.trim()) return menuItems;
+    const query = searchQuery.value.toLowerCase().trim();
+    return menuItems.filter(item => item.label.toLowerCase().includes(query));
+});
 
 const navigate = (path: string) => {
     router.push(path);
 };
 
-const isActive = (path: string) => route.path === path;
-
+const isActive = (item: any) => {
+    return route.path === item.path;
+};
 </script>
 
 <template>
     <div class="sidebar-container">
-        <div class="user-profile" @click="navigate('/about')" :class="{ 'active': isActive('/about') }">
-            <div class="avatar">
-                <img :src="logo" alt="User">
-            </div>
-            <div class="user-info">
-                <div class="user-name">I4104</div>
-                <div class="user-subtitle">System Settings</div>
-            </div>
-        </div>
-
-        <hr class="separator">
-
         <!-- Menu List -->
         <div class="menu-list">
-            <div v-for="(group, gIndex) in menuGroups" :key="gIndex" class="menu-group">
-                <div v-if="group.title" class="menu-title">{{ group.title }}</div>
-                <div 
-                    v-for="(item, iIndex) in group.items" 
-                    :key="iIndex" 
-                    class="menu-item"
-                    :class="{ 'active': isActive(item.path) }"
-                    @click="navigate(item.path)"
-                >
-                    <div class="icon-wrapper" :style="{ 
-                        backgroundColor: item.color, 
-                        opacity: isActive(item.path) ? 1 : 0.5 
-                    }">
-                        <i :class="item.icon" style="color: white; font-size: 0.8rem;"></i>
-                    </div>
-                    <span class="label">{{ item.label }}</span>
+            <div 
+                v-for="(item, index) in filteredMenuItems" 
+                :key="index" 
+                class="menu-item"
+                :class="{ 'active': isActive(item) }"
+                @click="navigate(item.path)"
+            >
+                <div class="icon-wrapper">
+                    <i :class="item.icon" class="item-icon"></i>
                 </div>
+                <span class="label">{{ item.label }}</span>
+            </div>
+
+            <!-- Empty Search State -->
+            <div v-if="filteredMenuItems.length === 0" class="empty-search">
+                <i class="pi pi-search"></i>
+                <span>No match found</span>
             </div>
         </div>
     </div>
 </template>
 
 <style scoped>
-.menu-title {
-    font-size: 12px;
-    font-weight: 400;
-    color: var(--text-secondary);
-    margin-left: 10px;
-    margin-bottom: 5px;
-}
-
 .sidebar-container {
     height: 100%;
     display: flex;
@@ -101,95 +72,68 @@ const isActive = (path: string) => route.path === path;
     user-select: none;
 }
 
-.window-controls {
-    display: flex;
-    gap: 8px;
-    padding: 18px 20px;
-}
-.control {
-    width: 12px;
-    height: 12px;
-    border-radius: 50%;
-}
-
-.separator {
-    margin: 0 10px;
-    margin-bottom: 20px;
-    border: none;
-    border-top: 1px solid #686868;
-}
-
-.user-profile {
-    display: flex;
-    align-items: center;
-    padding: 8px 16px;
-    margin: 0 10px 10px;
-    border-radius: 8px;
-    cursor: pointer;
-}
-.user-profile:hover {
-    background-color: var(--item-hover-bg);
-}
-.avatar img {
-    width: 50px;
-    height: 50px;
-    border-radius: 50%;
-    margin-right: 12px;
-    object-fit: cover;
-    border: 1px solid #9e9e9e;
-}
-.user-name {
-    font-weight: 700;
-    font-size: 15px;
-    margin-bottom: 2px;
-}
-.user-subtitle {
-    font-size: 12px;
-    color: var(--text-secondary);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
 .menu-list {
     flex: 1;
     overflow-y: auto;
-    padding: 0 10px 10px;
+    padding: 10px;
 }
-.menu-group {
-    margin-bottom: 12px;
-}
+
 .menu-item {
     display: flex;
     align-items: center;
-    padding: 6px 10px;
-    margin-bottom: 2px;
-    border-radius: 6px;
+    padding: 10px 14px;
+    margin-bottom: 4px;
+    border-radius: 8px;
     cursor: pointer;
-    transition: background-color 0.1s;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    color: var(--text-secondary);
 }
+
 .menu-item:hover {
     background-color: var(--item-hover-bg);
+    color: var(--text-primary);
+    transform: translateX(2px);
 }
 
 .menu-item.active {
     background-color: var(--item-active-bg);
     color: var(--item-active-text);
+    font-weight: 600;
+    border-left: 3px solid var(--accent-color);
 }
 
 .icon-wrapper {
-    width: 25px;
-    height: 25px;
-    border-radius: 5px;
+    width: 20px;
+    height: 20px;
     display: flex;
     align-items: center;
     justify-content: center;
-    margin-right: 10px;
-    opacity: 0.6;
+    margin-right: 12px;
 }
+
+.item-icon {
+    font-size: 14px;
+}
+
 .label {
-    font-size: 15px;
+    font-size: 13px;
     font-weight: 500;
 }
 
+/* Empty Search styles */
+.empty-search {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 10px;
+    color: var(--text-secondary);
+    gap: 8px;
+    font-size: 12px;
+}
+
+.empty-search i {
+    font-size: 20px;
+    opacity: 0.4;
+}
 </style>

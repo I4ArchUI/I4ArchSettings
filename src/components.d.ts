@@ -21,5 +21,7 @@ declare module 'vue' {
     SettingsCard: typeof import('./components/common/SettingsCard.vue')['default']
     ToastContainer: typeof import('./components/common/ToastContainer.vue')['default']
     WifiConfigModal: typeof import('./components/wifi/WifiConfigModal.vue')['default']
+    WifiInfoModal: typeof import('./components/wifi/WifiInfoModal.vue')['default']
+    WifiPasswordModal: typeof import('./components/wifi/WifiPasswordModal.vue')['default']
   }
 }

@@ -14,7 +14,8 @@ use modules::hyprland::keybinds::{get_keybinds, save_keybinds};
 use modules::hyprland::kitty::set_kitty_theme;
 use modules::hyprland::startup::{get_startup_commands, save_startup_commands};
 use modules::hyprland::wallpaper::{
-    get_current_wallpaper_path, get_wallpaper_base64, set_wallpaper,
+    get_current_wallpaper_path, get_wallpaper_base64, set_wallpaper, list_wallpapers_in_dir,
+    download_and_set_wallpaper,
 };
 use modules::hyprland::waybar::{get_waybar_position, set_waybar_position};
 use modules::settings::{get_app_settings, save_app_settings};
@@ -53,6 +54,8 @@ pub fn run() {
             set_wallpaper,
             get_current_wallpaper_path,
             get_wallpaper_base64,
+            list_wallpapers_in_dir,
+            download_and_set_wallpaper,
             get_app_settings,
             save_app_settings,
             get_waybar_position,

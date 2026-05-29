@@ -8,6 +8,7 @@ export interface WifiNetwork {
     security: string;
     bars: string;
     active: boolean;
+    signal?: number;
 }
 
 export interface WifiConfig {
@@ -16,4 +17,9 @@ export interface WifiConfig {
     prefix: number;
     gateway: string;
     dns: string;
+    bssid?: string;
+    frequency?: string;
+    speed?: string;
+    interface?: string;
+    mac_address?: string;
 }

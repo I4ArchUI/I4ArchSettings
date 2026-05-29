@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { useWifiViewModel } from '../viewmodels/wifi.viewmodel';
 import WifiConfigModal from '@/components/wifi/WifiConfigModal.vue';
+import WifiPasswordModal from '@/components/wifi/WifiPasswordModal.vue';
+import WifiInfoModal from '@/components/wifi/WifiInfoModal.vue';
 import LoadingState from '@/components/LoadingState.vue';
 import PageLayout from '../components/common/PageLayout.vue';
 import SettingsCard from '../components/common/SettingsCard.vue';
@@ -17,9 +19,22 @@ const {
     config,
     toggleWifi,
     connect,
-    openConfig,
     closeConfig,
-    saveConfig
+    saveConfig,
+    
+    // Password Modal states & actions
+    showPasswordModal,
+    connectingPassword,
+    passwordErrorMsg,
+    selectedNetwork,
+    connectWithPassword,
+    closePasswordModal,
+
+    // Info Modal states & actions
+    showInfoModal,
+    openInfo,
+    closeInfo,
+    switchToConfig
 } = useWifiViewModel();
 </script>
 
@@ -77,7 +92,7 @@ const {
                     </div>
                     
                     <!-- Info Button -->
-                    <a class="info-button" @click.stop="openConfig(net)">
+                    <a class="info-button" @click.stop="openInfo(net)">
                         <i class="pi pi-info-circle"></i>
                     </a>
                 </div>
@@ -98,6 +113,26 @@ const {
         :saving="savingConfig"
         @close="closeConfig"
         @save="saveConfig"
+    />
+
+    <!-- Info Modal Component -->
+    <WifiInfoModal
+        :visible="showInfoModal"
+        :network="selectedNetwork"
+        :config="config"
+        @close="closeInfo"
+        @configure="switchToConfig"
+    />
+
+    <!-- Password Prompt Modal Component -->
+    <WifiPasswordModal
+        :visible="showPasswordModal"
+        :ssid="selectedSsid"
+        :security="selectedNetwork?.security"
+        :saving="connectingPassword"
+        :error-msg="passwordErrorMsg"
+        @close="closePasswordModal"
+        @connect="connectWithPassword"
     />
   </PageLayout>
 </template>

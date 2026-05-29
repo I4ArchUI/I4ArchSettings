@@ -28,6 +28,16 @@ export function useWifiViewModel() {
         dns: ''
     });
 
+    // Password Prompt Modal state
+    const showPasswordModal = ref(false);
+    const passwordInput = ref('');
+    const passwordErrorMsg = ref<string | null>(null);
+    const selectedNetwork = ref<WifiNetwork | null>(null);
+    const connectingPassword = ref(false);
+
+    // Info Modal state
+    const showInfoModal = ref(false);
+
     let scanInterval: ReturnType<typeof setInterval> | null = null;
 
     // --- Actions ---
@@ -61,7 +71,8 @@ export function useWifiViewModel() {
         try {
             isEnabled.value = await invoke('get_wifi_status');
         } catch (e) {
-            console.error("Failed to check Wi-Fi status:", e);
+            console.warn("Tauri Wi-Fi status check failed, using fallback enabled=true:", e);
+            isEnabled.value = true;
         }
     };
 
@@ -77,7 +88,8 @@ export function useWifiViewModel() {
         try {
             networks.value = await invoke('scan_wifi');
         } catch (e) {
-            console.error("Wi-Fi scan failed:", e);
+            console.error("Tauri Wi-Fi scan failed:", e);
+            networks.value = [];
         } finally {
             loading.value = false;
         }
@@ -97,8 +109,8 @@ export function useWifiViewModel() {
                 stopScanInterval();
             }
         } catch (e) {
-            isEnabled.value = !isEnabled.value;
-            showToast('Failed to toggle Wi-Fi', 'error');
+            console.error("Tauri Wi-Fi toggle failed:", e);
+            showToast(`Failed to toggle Wi-Fi: ${e}`, 'error');
         }
     };
 
@@ -108,16 +120,61 @@ export function useWifiViewModel() {
     const connect = async (net: WifiNetwork) => {
         if (net.active || connectingSsid.value) return;
 
-        connectingSsid.value = net.ssid;
+        // If network has security, prompt for password
+        if (net.security !== '') {
+            selectedNetwork.value = net;
+            selectedSsid.value = net.ssid;
+            showPasswordModal.value = true;
+            passwordInput.value = '';
+            passwordErrorMsg.value = null;
+        } else {
+            // Open network, connect immediately
+            connectingSsid.value = net.ssid;
+            try {
+                await invoke('connect_wifi', { ssid: net.ssid, password: null, username: null });
+                await scan(true);
+                showToast(`Connected to ${net.ssid}`, 'success');
+            } catch (e: any) {
+                console.error('Tauri open connect failed:', e);
+                showToast(`Failed to connect to ${net.ssid}: ${e}`, 'error');
+            } finally {
+                connectingSsid.value = null;
+            }
+        }
+    };
+
+    /**
+     * Action called when submitting the password modal.
+     */
+    const connectWithPassword = async (password: string, username?: string) => {
+        if (!selectedNetwork.value) return;
+        
+        connectingPassword.value = true;
+        passwordErrorMsg.value = null;
+        connectingSsid.value = selectedNetwork.value.ssid;
+
         try {
-            await invoke('connect_wifi', { ssid: net.ssid, password: null });
+            await invoke('connect_wifi', { 
+                ssid: selectedNetwork.value.ssid, 
+                password,
+                username: username || null
+            });
+            showPasswordModal.value = false;
             await scan(true);
-            showToast(`Connected to ${net.ssid}`, 'success');
+            showToast(`Connected to ${selectedNetwork.value.ssid}`, 'success');
         } catch (e: any) {
-            showToast('Connection failed: ' + e, 'error');
+            console.error('Tauri password connect failed:', e);
+            passwordErrorMsg.value = typeof e === 'string' ? e : e.message || 'Authentication failed';
+            showToast('Authentication failed', 'error');
         } finally {
+            connectingPassword.value = false;
             connectingSsid.value = null;
         }
+    };
+
+    const closePasswordModal = () => {
+        showPasswordModal.value = false;
+        selectedNetwork.value = null;
     };
 
     /**
@@ -130,7 +187,15 @@ export function useWifiViewModel() {
             config.value = conf;
             showConfigModal.value = true;
         } catch (e) {
-            showToast('Failed to retrieve configuration', 'error');
+            console.error('Tauri config fetch failed:', e);
+            config.value = {
+                method: 'auto',
+                ip_address: '',
+                prefix: 24,
+                gateway: '',
+                dns: ''
+            };
+            showConfigModal.value = true;
         }
     };
 
@@ -156,10 +221,42 @@ export function useWifiViewModel() {
             await scan(true);
             showToast('Network settings saved successfully', 'success');
         } catch (e) {
-            showToast(`Failed to apply settings: ${e}`, 'error');
+            console.error('Tauri config save failed:', e);
+            showToast(`Failed to save settings: ${e}`, 'error');
         } finally {
             savingConfig.value = false;
         }
+    };
+
+    /**
+     * Opens the information modal for a network.
+     */
+    const openInfo = async (net: WifiNetwork) => {
+        selectedNetwork.value = net;
+        selectedSsid.value = net.ssid;
+        try {
+            const conf = await invoke<WifiConfig>('get_wifi_config', { ssid: net.ssid });
+            config.value = conf;
+        } catch (e) {
+            console.error('Tauri config fetch failed:', e);
+            config.value = {
+                method: 'auto',
+                ip_address: '',
+                prefix: 24,
+                gateway: '',
+                dns: ''
+            };
+        }
+        showInfoModal.value = true;
+    };
+
+    const closeInfo = () => {
+        showInfoModal.value = false;
+    };
+
+    const switchToConfig = () => {
+        showInfoModal.value = false;
+        showConfigModal.value = true;
     };
 
     // --- Lifecycle ---
@@ -189,6 +286,21 @@ export function useWifiViewModel() {
         connect,
         openConfig,
         closeConfig,
-        saveConfig
+        saveConfig,
+
+        // Password modal states & actions
+        showPasswordModal,
+        passwordInput,
+        passwordErrorMsg,
+        selectedNetwork,
+        connectingPassword,
+        connectWithPassword,
+        closePasswordModal,
+
+        // Info modal states & actions
+        showInfoModal,
+        openInfo,
+        closeInfo,
+        switchToConfig
     };
 }
