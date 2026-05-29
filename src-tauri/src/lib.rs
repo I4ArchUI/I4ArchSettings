@@ -24,7 +24,7 @@ use modules::systems::bluetooth::{
     toggle_bluetooth, BluetoothState,
 };
 use modules::systems::system::{check_app_installed, get_gtk_theme, get_system_info};
-use modules::systems::vpn::{connect_vpn, disconnect_vpn, get_vpn_connections, import_vpn};
+use modules::systems::vpn::{connect_vpn, disconnect_vpn, get_vpn_connections, import_vpn, create_manual_vpn};
 use modules::systems::wifi::{
     connect_wifi, get_wifi_config, get_wifi_status, scan_wifi, set_wifi_config, toggle_wifi,
 };
@@ -79,6 +79,7 @@ pub fn run() {
             connect_vpn,
             disconnect_vpn,
             import_vpn,
+            create_manual_vpn,
             check_updates,
             update_system,
             get_installed_apps,
