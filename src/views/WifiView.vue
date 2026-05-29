@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { ref, watch, onMounted, onUnmounted } from 'vue';
 import { useWifiViewModel } from '../viewmodels/wifi.viewmodel';
 import WifiConfigModal from '@/components/wifi/WifiConfigModal.vue';
 import WifiPasswordModal from '@/components/wifi/WifiPasswordModal.vue';
@@ -10,6 +9,7 @@ import SettingsCard from '../components/common/SettingsCard.vue';
 import loadingGif from '@/assets/loading-cat.gif';
 
 const {
+    selectedIndex,
     isEnabled,
     networks,
     loading,
@@ -38,64 +38,6 @@ const {
     closeInfo,
     switchToConfig
 } = useWifiViewModel();
-
-const triggerScan = () => {
-    if (isEnabled.value) {
-        scan(true);
-    }
-};
-
-const triggerToggle = () => {
-    isEnabled.value = !isEnabled.value;
-    toggleWifi();
-};
-
-onMounted(() => {
-    window.addEventListener('shortcut-refresh', triggerScan);
-    window.addEventListener('shortcut-toggle', triggerToggle);
-    window.addEventListener('keydown', handleListKeyDown);
-});
-
-onUnmounted(() => {
-    window.removeEventListener('shortcut-refresh', triggerScan);
-    window.removeEventListener('shortcut-toggle', triggerToggle);
-    window.removeEventListener('keydown', handleListKeyDown);
-});
-
-const selectedIndex = ref(0);
-
-const handleListKeyDown = (e: KeyboardEvent) => {
-    const activeElement = document.activeElement;
-    const isTyping = activeElement && (
-        activeElement.tagName === 'INPUT' ||
-        activeElement.tagName === 'TEXTAREA' ||
-        activeElement.tagName === 'SELECT' ||
-        activeElement.getAttribute('contenteditable') === 'true'
-    );
-    if (isTyping) return;
-
-    if (!isEnabled.value || networks.value.length === 0) return;
-
-    if (e.key === 'ArrowDown') {
-        selectedIndex.value = (selectedIndex.value + 1) % networks.value.length;
-        e.preventDefault();
-    } else if (e.key === 'ArrowUp') {
-        selectedIndex.value = (selectedIndex.value - 1 + networks.value.length) % networks.value.length;
-        e.preventDefault();
-    } else if (e.key === 'Enter') {
-        const net = networks.value[selectedIndex.value];
-        if (net) {
-            connect(net);
-        }
-        e.preventDefault();
-    }
-};
-
-watch(networks, (newVal) => {
-    if (selectedIndex.value >= newVal.length) {
-        selectedIndex.value = Math.max(0, newVal.length - 1);
-    }
-});
 </script>
 
 <template>
