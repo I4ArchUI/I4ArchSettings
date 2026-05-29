@@ -8,7 +8,6 @@ const route = useRoute();
 const { searchQuery } = useSearch();
 
 const menuItems = [
-    { label: 'About System', icon: 'pi pi-info-circle', path: '/about' },
     { label: 'Wi-Fi', icon: 'pi pi-wifi', path: '/wifi' },
     { label: 'VPN', icon: 'pi pi-cloud', path: '/vpn' },
     { label: 'Bluetooth', icon: 'pi pi-mobile', path: '/bluetooth' },
@@ -21,6 +20,8 @@ const menuItems = [
     { label: 'Environment', icon: 'pi pi-box', path: '/env' },
     { label: 'System Update', icon: 'pi pi-history', path: '/system-update' },
 ];
+
+const aboutItem = { label: 'About System', icon: 'pi pi-info-circle', path: '/about' };
 
 // Computed list filtered by the header search query
 const filteredMenuItems = computed(() => {
@@ -40,7 +41,7 @@ const isActive = (item: any) => {
 
 <template>
     <div class="sidebar-container">
-        <!-- Menu List -->
+        <!-- Scrollable Menu List -->
         <div class="menu-list">
             <div 
                 v-for="(item, index) in filteredMenuItems" 
@@ -61,6 +62,21 @@ const isActive = (item: any) => {
                 <span>No match found</span>
             </div>
         </div>
+
+        <!-- Pinned Bottom: About System -->
+        <div class="sidebar-footer">
+            <div class="footer-divider"></div>
+            <div
+                class="menu-item"
+                :class="{ 'active': isActive(aboutItem) }"
+                @click="navigate(aboutItem.path)"
+            >
+                <div class="icon-wrapper">
+                    <i :class="aboutItem.icon" class="item-icon"></i>
+                </div>
+                <span class="label">{{ aboutItem.label }}</span>
+            </div>
+        </div>
     </div>
 </template>
 
@@ -77,6 +93,19 @@ const isActive = (item: any) => {
     flex: 1;
     overflow-y: auto;
     padding: 10px;
+    padding-bottom: 4px;
+}
+
+.sidebar-footer {
+    padding: 0 10px 10px 10px;
+    flex-shrink: 0;
+}
+
+.footer-divider {
+    height: 1px;
+    background: rgba(255, 255, 255, 0.08);
+    margin: 0 4px 8px 4px;
+    border-radius: 1px;
 }
 
 .menu-item {
