@@ -35,6 +35,9 @@ export function useWifiViewModel() {
     const selectedNetwork = ref<WifiNetwork | null>(null);
     const connectingPassword = ref(false);
 
+    // Info Modal state
+    const showInfoModal = ref(false);
+
     let scanInterval: ReturnType<typeof setInterval> | null = null;
 
     // --- Actions ---
@@ -91,24 +94,28 @@ export function useWifiViewModel() {
                     ssid: "Arch_AP_Secured",
                     security: "WPA/WPA2",
                     bars: "icon-wifi-strong",
+                    signal: 95,
                     active: false
                 },
                 {
                     ssid: "Demo_Enterprise_802.1X",
                     security: "WPA-Enterprise",
                     bars: "icon-wifi-strong",
+                    signal: 88,
                     active: false
                 },
                 {
                     ssid: "Demo_Public_Free",
                     security: "",
                     bars: "icon-wifi-medium",
+                    signal: 68,
                     active: false
                 },
                 {
                     ssid: "Coffee_Shop_5G",
                     security: "WPA2",
                     bars: "icon-wifi-weak",
+                    signal: 35,
                     active: false
                 }
             ];
@@ -272,6 +279,43 @@ export function useWifiViewModel() {
         }
     };
 
+    /**
+     * Opens the information modal for a network.
+     */
+    const openInfo = async (net: WifiNetwork) => {
+        selectedNetwork.value = net;
+        selectedSsid.value = net.ssid;
+        try {
+            const conf = await invoke<WifiConfig>('get_wifi_config', { ssid: net.ssid });
+            config.value = conf;
+        } catch (e) {
+            console.warn('Tauri config fetch failed, using default configuration values:', e);
+            const is5G = net.ssid.includes('5G') || net.ssid.includes('Enterprise');
+            config.value = {
+                method: 'auto',
+                ip_address: '192.168.1.150',
+                prefix: 24,
+                gateway: '192.168.1.1',
+                dns: '8.8.8.8, 1.1.1.1',
+                bssid: is5G ? '00:11:22:aa:bb:cc' : '00:11:22:33:44:55',
+                frequency: is5G ? '5 GHz (5180 MHz)' : '2.4 GHz (2412 MHz)',
+                speed: is5G ? '866 Mbps' : '144 Mbps',
+                interface: 'wlan0',
+                mac_address: 'a0:b1:c2:d3:e4:f5'
+            };
+        }
+        showInfoModal.value = true;
+    };
+
+    const closeInfo = () => {
+        showInfoModal.value = false;
+    };
+
+    const switchToConfig = () => {
+        showInfoModal.value = false;
+        showConfigModal.value = true;
+    };
+
     // --- Lifecycle ---
     onMounted(async () => {
         await checkStatus();
@@ -308,6 +352,12 @@ export function useWifiViewModel() {
         selectedNetwork,
         connectingPassword,
         connectWithPassword,
-        closePasswordModal
+        closePasswordModal,
+
+        // Info modal states & actions
+        showInfoModal,
+        openInfo,
+        closeInfo,
+        switchToConfig
     };
 }
