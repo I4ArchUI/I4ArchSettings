@@ -12,7 +12,8 @@ const menuItems = [
     { label: 'Wi-Fi', icon: 'pi pi-wifi', path: '/wifi' },
     { label: 'VPN', icon: 'pi pi-cloud', path: '/vpn' },
     { label: 'Bluetooth', icon: 'pi pi-mobile', path: '/bluetooth' },
-    { label: 'Wallpaper & Colors', icon: 'pi pi-palette', path: '/appearance' },
+    { label: 'Wallpaper', icon: 'pi pi-palette', path: '/appearance' },
+    { label: 'Themes', icon: 'pi pi-sliders-h', path: '/themes' },
     { label: 'Displays', icon: 'pi pi-desktop', path: '/displays' },
     { label: 'Installed Apps', icon: 'pi pi-th-large', path: '/apps' },
     { label: 'Startup Apps', icon: 'pi pi-cog', path: '/startup' },
@@ -85,21 +86,52 @@ const isActive = (item: any) => {
     margin-bottom: 4px;
     border-radius: 8px;
     cursor: pointer;
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: color 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+                transform 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     color: var(--text-secondary);
+    position: relative;
+    overflow: hidden;
+    z-index: 0;
+}
+
+/* The sliding fill layer */
+.menu-item::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 8px;
+    background-color: var(--item-hover-bg);
+    transform: translateX(-100%);
+    transition: transform 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    z-index: -1;
+}
+
+.menu-item:hover::before {
+    transform: translateX(0);
 }
 
 .menu-item:hover {
-    background-color: var(--item-hover-bg);
     color: var(--text-primary);
     transform: translateX(2px);
 }
 
-.menu-item.active {
+/* Active state: accent fill sweeps in from left */
+.menu-item.active::before {
     background-color: var(--item-active-bg);
+    transform: translateX(0);
+    animation: swipe-in 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
+}
+
+.menu-item.active {
     color: var(--item-active-text);
     font-weight: 600;
-    border-left: 3px solid var(--accent-color);
+    /* Thin accent left indicator on top of the fill */
+    box-shadow: inset 3px 0 0 var(--accent-color);
+}
+
+@keyframes swipe-in {
+    from { transform: translateX(-100%); }
+    to   { transform: translateX(0); }
 }
 
 .icon-wrapper {

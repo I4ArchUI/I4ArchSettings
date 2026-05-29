@@ -215,6 +215,7 @@ const { searchQuery } = useSearch();
     flex: 1;
     background-color: var(--content-bg);
     overflow-y: auto;
+    overflow-x: hidden;
     display: flex;
     flex-direction: column;
 }
