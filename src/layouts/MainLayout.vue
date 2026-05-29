@@ -48,6 +48,7 @@ const { searchQuery } = useSearch();
 </template>
 
 <style scoped>
+/* Main Window */
 .main-window {
     display: flex;
     flex-direction: column;
@@ -56,12 +57,18 @@ const { searchQuery } = useSearch();
     border-radius: var(--window-border-radius);
     overflow: hidden;
     background: var(--content-bg);
-    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
-    border: 1px solid var(--card-border);
+    /* Multi-layer glass shadow */
+    box-shadow:
+        0 32px 80px rgba(0, 0, 0, 0.7),
+        0 8px 32px rgba(0, 0, 0, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-top-color: rgba(255, 255, 255, 0.16);
 }
 
 .glass-frame {
-    backdrop-filter: var(--glass-blur, blur(30px) saturate(140%));
+    backdrop-filter: var(--glass-blur-heavy);
+    -webkit-backdrop-filter: var(--glass-blur-heavy);
 }
 
 /* Header Styles */
@@ -71,8 +78,17 @@ const { searchQuery } = useSearch();
     justify-content: space-between;
     height: 64px;
     padding: 0 20px;
-    background: rgba(15, 15, 20, 0.4);
-    border-bottom: 1px solid var(--separator-color);
+    /* Frosted glass gradient header */
+    background: linear-gradient(
+        to right,
+        rgba(18, 12, 30, 0.75),
+        rgba(12, 12, 22, 0.65)
+    );
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    /* Subtle top highlight line */
+    box-shadow: inset 0 -1px 0 rgba(255, 255, 255, 0.04), 0 1px 0 rgba(0, 0, 0, 0.3);
     user-select: none;
     z-index: 100;
 }
@@ -204,8 +220,16 @@ const { searchQuery } = useSearch();
 
 .sidebar-pane {
     width: var(--sidebar-width);
-    background-color: var(--sidebar-bg);
-    border-right: 1px solid var(--separator-color);
+    background: linear-gradient(
+        to bottom,
+        rgba(15, 12, 28, 0.78),
+        rgba(10, 10, 20, 0.72)
+    );
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
+    border-right: 1px solid rgba(255, 255, 255, 0.08);
+    /* Subtle inner highlight on the right edge */
+    box-shadow: inset -1px 0 0 rgba(255, 255, 255, 0.04);
     padding: 12px 2px;
     display: flex;
     flex-direction: column;
