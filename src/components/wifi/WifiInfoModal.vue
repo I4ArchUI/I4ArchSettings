@@ -145,23 +145,21 @@ const signalLabel = computed(() => {
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(0,0,0,0.5);
-    backdrop-filter: blur(8px);
+    background: rgba(0,0,0,0.4);
+    backdrop-filter: blur(4px);
     display: flex;
     align-items: center;
     justify-content: center;
-    z-index: 1050;
+    z-index: 1000;
 }
 
 .dialog {
-    background: rgba(26, 27, 30, 0.75);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    backdrop-filter: blur(20px);
+    background: var(--content-bg, #1e1e1e);
     padding: 0;
     border-radius: 16px;
     width: 440px;
     max-width: 90vw;
-    box-shadow: 0 16px 40px rgba(0,0,0,0.4);
+    box-shadow: 0 10px 40px rgba(0,0,0,0.2);
     display: flex;
     flex-direction: column;
     overflow: hidden;
@@ -169,7 +167,7 @@ const signalLabel = computed(() => {
 }
 
 .dialog-header {
-    padding: 24px 24px 12px 24px;
+    padding: 24px 24px 10px 24px;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -177,19 +175,22 @@ const signalLabel = computed(() => {
 
 .dialog h3 {
     margin: 0;
-    font-size: 16px;
+    font-size: 18px;
     font-weight: 600;
-    color: var(--text-primary, #ffffff);
+    color: var(--text-primary);
 }
 
 .status-indicator-wrapper {
     display: flex;
     align-items: center;
     gap: 8px;
-    background: rgba(255, 255, 255, 0.04);
+    background: rgba(0,0,0,0.05);
     padding: 4px 10px;
     border-radius: 20px;
-    border: 1px solid rgba(255,255,255,0.04);
+}
+
+:global(.dark) .status-indicator-wrapper {
+    background: rgba(255,255,255,0.05);
 }
 
 .status-dot {
@@ -200,25 +201,25 @@ const signalLabel = computed(() => {
 }
 
 .status-dot.active {
-    background: var(--accent-color, #e5c197);
-    box-shadow: 0 0 8px var(--accent-color, #e5c197);
+    background: var(--accent-color, #007aff);
+    box-shadow: 0 0 8px var(--accent-color, #007aff);
     animation: pulse 2s infinite;
 }
 
 .status-text {
     font-size: 11px;
     font-weight: 600;
-    color: var(--text-secondary, #9e9e9e);
+    color: var(--text-secondary);
     text-transform: uppercase;
     letter-spacing: 0.5px;
 }
 
 .status-text.connected {
-    color: var(--accent-color, #e5c197);
+    color: var(--accent-color, #007aff);
 }
 
 .dialog-body {
-    padding: 12px 24px 24px 24px;
+    padding: 10px 24px 20px 24px;
     max-height: 480px;
     overflow-y: auto;
     display: flex;
@@ -251,11 +252,15 @@ const signalLabel = computed(() => {
     margin: 0;
     font-size: 11px;
     font-weight: 700;
-    color: var(--accent-color, #e5c197);
+    color: var(--accent-color, #007aff);
     text-transform: uppercase;
     letter-spacing: 0.8px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    border-bottom: 1px solid rgba(0,0,0,0.05);
     padding-bottom: 6px;
+}
+
+:global(.dark) .section-title {
+    border-bottom: 1px solid rgba(255,255,255,0.05);
 }
 
 /* Info Grid Layout */
@@ -276,16 +281,16 @@ const signalLabel = computed(() => {
 }
 
 .info-label {
-    font-size: 10px;
+    font-size: 12px;
     font-weight: 600;
-    color: var(--text-secondary, #9e9e9e);
+    color: var(--text-secondary);
     text-transform: uppercase;
     letter-spacing: 0.5px;
 }
 
 .info-value {
-    font-size: 13px;
-    color: var(--text-primary, #ffffff);
+    font-size: 14px;
+    color: var(--text-primary);
     font-family: 'Outfit', sans-serif;
     word-break: break-all;
 }
@@ -299,6 +304,11 @@ const signalLabel = computed(() => {
     justify-content: flex-end;
     gap: 12px;
     padding: 16px 24px;
+    background: rgba(0,0,0,0.02);
+    border-top: 1px solid rgba(0,0,0,0.05);
+}
+
+:global(.dark) .dialog-actions {
     background: rgba(255,255,255,0.02);
     border-top: 1px solid rgba(255,255,255,0.05);
 }
@@ -310,13 +320,17 @@ const signalLabel = computed(() => {
     cursor: pointer;
     font-weight: 500;
     background: transparent;
-    color: var(--text-secondary, #9e9e9e);
-    transition: all 0.2s;
+    color: var(--text-secondary);
+    transition: background 0.2s;
 }
 
 .btn-cancel:hover {
+    background: rgba(0,0,0,0.05);
+    color: var(--text-primary);
+}
+
+:global(.dark) .btn-cancel:hover {
     background: rgba(255,255,255,0.05);
-    color: var(--text-primary, #ffffff);
 }
 
 .btn-confirm {
@@ -325,20 +339,16 @@ const signalLabel = computed(() => {
     border: none;
     cursor: pointer;
     font-weight: 600;
-    background: var(--accent-color, #e5c197);
-    color: #121214;
+    background: var(--accent-color, #007aff);
+    color: white;
     display: flex;
     align-items: center;
     gap: 8px;
-    transition: opacity 0.2s, transform 0.1s;
+    transition: opacity 0.2s;
 }
 
 .btn-confirm:hover {
     opacity: 0.9;
-}
-
-.btn-confirm:active {
-    transform: scale(0.98);
 }
 
 /* Animations */
@@ -353,7 +363,7 @@ const signalLabel = computed(() => {
 }
 
 @keyframes slideUp {
-    from { opacity: 0; transform: translateY(15px) scale(0.97); }
+    from { opacity: 0; transform: translateY(20px) scale(0.95); }
     to { opacity: 1; transform: translateY(0) scale(1); }
 }
 

@@ -71,7 +71,7 @@ const closeDialog = () => {
                     </div>
 
                     <!-- DNS Section (Always visible) -->
-                    <div class="form-group" style="margin-top: 15px; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 15px;">
+                    <div class="form-group" style="margin-top: 15px; border-top: 1px solid rgba(0,0,0,0.05); padding-top: 15px;">
                         <label>DNS Servers</label>
                         <input type="text" v-model="config.dns" placeholder="8.8.8.8, 1.1.1.1" class="flat-input">
                         <span class="input-hint">Leave empty to use router DNS</span>
@@ -98,23 +98,21 @@ const closeDialog = () => {
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(0,0,0,0.5);
-    backdrop-filter: blur(8px);
+    background: rgba(0,0,0,0.4);
+    backdrop-filter: blur(4px);
     display: flex;
     align-items: center;
     justify-content: center;
-    z-index: 1050;
+    z-index: 1000;
 }
 
 .dialog {
-    background: rgba(26, 27, 30, 0.75);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    backdrop-filter: blur(20px);
+    background: var(--content-bg, #1e1e1e);
     padding: 0;
     border-radius: 16px;
     width: 420px;
     max-width: 90vw;
-    box-shadow: 0 16px 40px rgba(0,0,0,0.4);
+    box-shadow: 0 10px 40px rgba(0,0,0,0.2);
     display: flex;
     flex-direction: column;
     overflow: hidden;
@@ -122,52 +120,55 @@ const closeDialog = () => {
 }
 
 .dialog-header {
-    padding: 24px 24px 12px 24px;
+    padding: 24px 24px 10px 24px;
 }
 
 .dialog h3 {
     margin: 0;
-    font-size: 16px;
+    font-size: 18px;
     font-weight: 600;
-    color: var(--text-primary, #ffffff);
+    color: var(--text-primary);
 }
 
 .dialog-subtitle {
-    margin: 6px 0 0 0;
-    font-size: 12px;
-    color: var(--text-secondary, #9e9e9e);
+    margin: 4px 0 0 0;
+    font-size: 13px;
+    color: var(--text-secondary);
 }
 
 .dialog-body {
-    padding: 12px 24px 24px 24px;
+    padding: 10px 24px 20px 24px;
 }
 
 /* Method Selector (Segmented Control) */
 .method-selector {
     display: flex;
-    background: rgba(255,255,255,0.03);
+    background: rgba(0,0,0,0.05);
     padding: 4px;
     border-radius: 10px;
     margin-bottom: 20px;
-    border: 1px solid rgba(255,255,255,0.05);
+}
+
+:global(.dark) .method-selector {
+    background: rgba(255,255,255,0.05);
 }
 
 .method-option {
     flex: 1;
     text-align: center;
     padding: 8px;
-    font-size: 12px;
-    font-weight: 600;
+    font-size: 13px;
+    font-weight: 500;
     border-radius: 8px;
     cursor: pointer;
-    color: var(--text-secondary, #9e9e9e);
+    color: var(--text-secondary);
     transition: all 0.2s ease;
 }
 
 .method-option.active {
-    background: rgba(255,255,255,0.08);
-    color: var(--text-primary, #ffffff);
-    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    background: var(--card-bg, #2a2a2a);
+    color: var(--text-primary);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
 }
 
 .hidden-radio {
@@ -190,9 +191,9 @@ const closeDialog = () => {
 .form-group label {
     display: block;
     margin-bottom: 8px;
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 600;
-    color: var(--text-secondary, #9e9e9e);
+    color: var(--text-secondary);
     text-transform: uppercase;
     letter-spacing: 0.5px;
 }
@@ -200,33 +201,37 @@ const closeDialog = () => {
 .flat-input {
     width: 100%;
     padding: 10px 12px;
-    border: 1px solid rgba(255,255,255,0.08);
+    border: 1px solid rgba(0,0,0,0.1);
     border-radius: 8px;
-    background: rgba(255,255,255,0.03); 
-    color: var(--text-primary, #ffffff);
-    font-size: 13px;
-    transition: all 0.2s ease;
+    background: var(--card-bg, #2a2a2a); 
+    color: var(--text-primary);
+    font-size: 14px;
+    transition: border-color 0.2s, box-shadow 0.2s;
     outline: none;
     box-sizing: border-box;
 }
 
+:global(.dark) .flat-input {
+    border: 1px solid rgba(255,255,255,0.1);
+    background: rgba(255,255,255,0.03);
+}
+
 .flat-input:focus {
-    border-color: var(--accent-color, #e5c197);
-    box-shadow: 0 0 0 3px rgba(229, 193, 151, 0.15);
-    background: rgba(255,255,255,0.05);
+    border-color: var(--accent-color, #007aff);
+    box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.1);
 }
 
 .input-hint {
     display: block;
     margin-top: 6px;
     font-size: 11px;
-    color: var(--text-secondary, #9e9e9e);
+    color: var(--text-secondary);
 }
 
 .auto-info {
     text-align: center;
     padding: 20px 0;
-    color: var(--text-secondary, #9e9e9e);
+    color: var(--text-secondary);
     font-size: 13px;
 }
 
@@ -236,6 +241,11 @@ const closeDialog = () => {
     justify-content: flex-end;
     gap: 12px;
     padding: 16px 24px;
+    background: rgba(0,0,0,0.02);
+    border-top: 1px solid rgba(0,0,0,0.05);
+}
+
+:global(.dark) .dialog-actions {
     background: rgba(255,255,255,0.02);
     border-top: 1px solid rgba(255,255,255,0.05);
 }
@@ -247,13 +257,13 @@ const closeDialog = () => {
     cursor: pointer;
     font-weight: 500;
     background: transparent;
-    color: var(--text-secondary, #9e9e9e);
-    transition: all 0.2s;
+    color: var(--text-secondary);
+    transition: background 0.2s;
 }
 
 .btn-cancel:hover {
-    background: rgba(255,255,255,0.05);
-    color: var(--text-primary, #ffffff);
+    background: rgba(0,0,0,0.05);
+    color: var(--text-primary);
 }
 
 .btn-confirm {
@@ -262,24 +272,16 @@ const closeDialog = () => {
     border: none;
     cursor: pointer;
     font-weight: 600;
-    background: var(--accent-color, #e5c197);
-    color: #121214;
+    background: var(--accent-color, #007aff);
+    color: white;
     display: flex;
     align-items: center;
     gap: 8px;
-    transition: opacity 0.2s, transform 0.1s;
-}
-
-.btn-confirm:hover:not(:disabled) {
-    opacity: 0.9;
-}
-
-.btn-confirm:active:not(:disabled) {
-    transform: scale(0.98);
+    transition: opacity 0.2s;
 }
 
 .btn-confirm:disabled {
-    opacity: 0.5;
+    opacity: 0.7;
     cursor: not-allowed;
 }
 
@@ -295,16 +297,11 @@ const closeDialog = () => {
 }
 
 @keyframes slideUp {
-    from { opacity: 0; transform: translateY(15px) scale(0.97); }
+    from { opacity: 0; transform: translateY(20px) scale(0.95); }
     to { opacity: 1; transform: translateY(0) scale(1); }
 }
 
 .manual-settings {
     animation: fadeIn 0.3s ease;
-}
-
-@keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
 }
 </style>
