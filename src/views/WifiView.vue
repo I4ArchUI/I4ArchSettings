@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { onMounted, onUnmounted } from 'vue';
 import { useWifiViewModel } from '../viewmodels/wifi.viewmodel';
 import WifiConfigModal from '@/components/wifi/WifiConfigModal.vue';
 import WifiPasswordModal from '@/components/wifi/WifiPasswordModal.vue';
@@ -18,6 +19,7 @@ const {
     selectedSsid,
     config,
     toggleWifi,
+    scan,
     connect,
     closeConfig,
     saveConfig,
@@ -36,6 +38,27 @@ const {
     closeInfo,
     switchToConfig
 } = useWifiViewModel();
+
+const triggerScan = () => {
+    if (isEnabled.value) {
+        scan(true);
+    }
+};
+
+const triggerToggle = () => {
+    isEnabled.value = !isEnabled.value;
+    toggleWifi();
+};
+
+onMounted(() => {
+    window.addEventListener('shortcut-refresh', triggerScan);
+    window.addEventListener('shortcut-toggle', triggerToggle);
+});
+
+onUnmounted(() => {
+    window.removeEventListener('shortcut-refresh', triggerScan);
+    window.removeEventListener('shortcut-toggle', triggerToggle);
+});
 </script>
 
 <template>
@@ -49,6 +72,7 @@ const {
                 <input type="checkbox" v-model="isEnabled" @change="toggleWifi">
                 <span class="slider round"></span>
             </label>
+            <span class="kbd-hint"><kbd>Alt</kbd>+<kbd>S</kbd></span>
         </div>
     </template>
 
