@@ -19,7 +19,6 @@ const {
     selectedSsid,
     config,
     toggleWifi,
-    scan,
     connect,
     closeConfig,
     saveConfig,
