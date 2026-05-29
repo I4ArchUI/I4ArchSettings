@@ -4,10 +4,11 @@
  */
 
 import { ref, onMounted } from 'vue';
-import { invoke } from '@tauri-apps/api/core';
+import { invoke, convertFileSrc } from '@tauri-apps/api/core';
 import { open } from '@tauri-apps/plugin-dialog';
 import type { AppSettings } from '../models/appearance.model';
 import { useToast } from '../composables/useToast';
+
 
 export function useAppearanceViewModel() {
     // --- State ---
@@ -16,6 +17,11 @@ export function useAppearanceViewModel() {
     const currentWallpaperSrc = ref('');
     const waybarPosition = ref('top');
     const changingPosition = ref(false);
+    
+    // New Glassmorphic UI State
+    const wallpapersFolder = ref('/home/snow/images/wallpapers');
+    const wallpapers = ref<string[]>([]);
+    const transparency = ref(true);
 
     // Notifications
     const { showToast } = useToast();
@@ -161,6 +167,98 @@ export function useAppearanceViewModel() {
     };
 
     // Wallpaper Logic
+    const fetchOnlineWallpapers = async () => {
+        const wallpapersList: string[] = [];
+        try {
+            await fetch("https://wallhaven.cc/api/v1/search?sorting=random", {
+                method: "GET",
+            }).then(res => res.json())
+                .then(data => {
+                    if (Array.isArray(data.data)) {
+                        data.forEach((img: any) => {
+                            if (img && img.path) {
+                                wallpapersList.push(img.path);
+                            }
+                        });
+                    }
+                })
+        } catch (e) { }
+        return wallpapersList;
+    };
+
+    const loadWallpapers = async () => {
+        loading.value = true;
+        const foldersToTry = [
+            '~/Pictures',
+            '~/Picture',
+            '~/.config/hypr/wallpapers'
+        ];
+        
+        for (const folder of foldersToTry) {
+            try {
+                const files = await invoke<string[]>('list_wallpapers_in_dir', { dirPath: folder });
+                if (files && files.length > 0) {
+                    wallpapersFolder.value = folder;
+                    wallpapers.value = files;
+                    loading.value = false;
+                    return;
+                }
+            } catch (e) {
+                // Try next directory
+            }
+        }
+        
+        // Final fallback to high-res online anime wallpapers
+        const onlinePics = await fetchOnlineWallpapers();
+        if (onlinePics && onlinePics.length > 0) {
+            wallpapers.value = onlinePics;
+        } else {
+            wallpapers.value = [];
+        }
+        loading.value = false;
+    };
+
+    const getWallpaperUrl = (path: string) => {
+        if (path.startsWith('http')) return path;
+        return convertFileSrc(path);
+    };
+
+    const selectWallpaper = async (filePath: string) => {
+        try {
+            loading.value = true;
+            if (filePath.startsWith('http')) {
+                // Download from URL using curl and apply
+                await invoke('download_and_set_wallpaper', { url: filePath });
+                await updatePreview();
+                showToast('Wallpaper downloaded and applied successfully', 'success');
+            } else {
+                await invoke('set_wallpaper', { filePath });
+                await updatePreview();
+                showToast('Wallpaper updated successfully', 'success');
+            }
+        } catch (e: any) {
+            showToast('Failed to set wallpaper: ' + e, 'error');
+        } finally {
+            loading.value = false;
+        }
+    };
+
+    const pickWallpaperFolder = async () => {
+        try {
+            const selected = await open({
+                directory: true,
+                multiple: false
+            });
+            if (selected) {
+                wallpapersFolder.value = selected;
+                await loadWallpapers();
+                showToast('Wallpaper directory updated', 'success');
+            }
+        } catch (e: any) {
+            showToast('Failed to pick directory: ' + e, 'error');
+        }
+    };
+
     const updatePreview = async () => {
         try {
             const b64 = await invoke<string>('get_wallpaper_base64');
@@ -171,7 +269,7 @@ export function useAppearanceViewModel() {
     };
 
     const handleImageError = () => {
-        currentWallpaperSrc.value = 'https://via.placeholder.com/400x300?text=No+Wallpaper';
+        currentWallpaperSrc.value = 'https://cdn.nekos.best/neko/0020.png';
     };
 
     const pickWallpaper = async () => {
@@ -253,6 +351,7 @@ export function useAppearanceViewModel() {
 
         // Initial Preview Load
         updatePreview();
+        loadWallpapers();
     });
 
     return {
@@ -264,7 +363,11 @@ export function useAppearanceViewModel() {
         changingPosition,
         isWaybarInstalled,
         isKittyInstalled,
+        
         // New State
+        wallpapersFolder,
+        wallpapers,
+        transparency,
 
         cursorThemes,
         gtkThemes,
@@ -280,6 +383,10 @@ export function useAppearanceViewModel() {
         handleImageError,
         setWaybarPosition,
         applyAppearanceSettings,
-        applyHyprlandConfig
+        applyHyprlandConfig,
+        loadWallpapers,
+        getWallpaperUrl,
+        selectWallpaper,
+        pickWallpaperFolder
     };
 }

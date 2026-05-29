@@ -1,360 +1,575 @@
 <script setup lang="ts">
 import { useAppearanceViewModel } from '../viewmodels/appearance.viewmodel';
 import PageLayout from '../components/common/PageLayout.vue';
-import SettingsCard from '../components/common/SettingsCard.vue';
 
 const {
     loading,
     isDark,
     currentWallpaperSrc,
-    waybarPosition,
-    changingPosition,
     toggleTheme,
     pickWallpaper,
     handleImageError,
-    setWaybarPosition,
-    cursorThemes,
-    gtkThemes,
-    selectedCursorTheme,
-    selectedCursorSize,
-    selectedGtkTheme,
-    cursorSizes,
-    applyAppearanceSettings,
-    hyprlandConfig,
-    applyHyprlandConfig,
-    isWaybarInstalled
+    wallpapers,
+    transparency,
+    getWallpaperUrl,
+    selectWallpaper
 } = useAppearanceViewModel();
 </script>
 
 <template>
     <PageLayout>
-        <template #title>Appearance</template>
+        <!-- Page Title -->
+        <template #title>
+            <div class="view-title-container">
+                <i class="pi pi-palette title-icon"></i>
+                <span>Wallpaper & Colors</span>
+            </div>
+        </template>
 
-        <div class="card-content-wrapper">
-            <div class="image-frame">
-                <img :src="currentWallpaperSrc" alt="Current Wallpaper" class="wallpaper-img"
-                    @error="handleImageError" />
-
-                <div class="change-btn-container">
-                    <div class="path-container">
-                        <span class="path-highlight">~/.config/hypr/themes/background.png</span>
+        <!-- Main Dashboard Card -->
+        <div class="dashboard-glass-panel">
+            <!-- Top Configuration Row (Three Columns) -->
+            <div class="config-columns">
+                <!-- Column 1: Wallpaper Preview -->
+                <div class="config-col preview-col">
+                    <div class="wallpaper-preview-frame">
+                        <img 
+                            :src="currentWallpaperSrc" 
+                            alt="Current Wallpaper Preview" 
+                            class="preview-img"
+                            @error="handleImageError"
+                        />
                     </div>
-                    <button class="btn-change" @click="pickWallpaper" :disabled="loading">
-                        <i v-if="loading" class="pi pi-spin pi-spinner"></i>
-                        <span v-else>Browse Pictures</span>
-                    </button>
+                </div>
+
+                <!-- Column 2: Choose File Button -->
+                <div class="config-col select-file-col" @click="pickWallpaper" :class="{ 'disabled': loading }">
+                    <div class="choose-file-card">
+                        <i v-if="loading" class="pi pi-spin pi-spinner choose-icon"></i>
+                        <i v-else class="pi pi-images choose-icon"></i>
+                        <span class="choose-label">Choose File</span>
+                    </div>
+                </div>
+
+                <!-- Column 3: Light/Dark Selector -->
+                <div class="config-col theme-selector-col">
+                    <div class="theme-cards-container">
+                        <!-- Light Theme Card -->
+                        <div 
+                            class="theme-card light-card" 
+                            :class="{ 'active': !isDark }"
+                            @click="!isDark ? null : toggleTheme()"
+                        >
+                            <i class="pi pi-sun theme-icon"></i>
+                            <span class="theme-label">Light</span>
+                        </div>
+
+                        <!-- Dark Theme Card -->
+                        <div 
+                            class="theme-card dark-card" 
+                            :class="{ 'active': isDark }"
+                            @click="isDark ? null : toggleTheme()"
+                        >
+                            <i class="pi pi-moon theme-icon"></i>
+                            <span class="theme-label">Dark</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+            <!-- Transparency Control Row -->
+            <div class="settings-row-item transparency-row">
+                <div class="row-left">
+                    <i class="pi pi-eye row-icon"></i>
+                    <div class="row-text-info">
+                        <span class="row-label">Transparency</span>
+                    </div>
+                </div>
+                <div class="row-right">
+                    <label class="switch-toggle">
+                        <input type="checkbox" v-model="transparency" />
+                        <span class="slider-round"></span>
+                    </label>
+                </div>
+            </div>
+
+            <hr class="panel-divider" />
+
+            <!-- Quick Select Section -->
+            <div class="quick-select-header">
+                <div class="quick-left">
+                    <span class="quick-title">Quick select</span>
+                </div>
+            </div>
+
+            <!-- Wallpapers Dynamic Grid -->
+            <div class="wallpaper-grid-container">
+                <div v-if="loading" style="display: flex; justify-content: center; align-items: center; min-height: 120px;">
+                    <i class="pi pi-spin pi-spinner" style="font-size: 24px; color: var(--accent-color);"></i>
+                </div>
+                <div v-else-if="wallpapers.length === 0" class="empty-wallpapers-message">
+                    <i class="pi pi-exclamation-triangle warning-icon"></i>
+                    <span>Failed to load wallpapers from online source.</span>
+                </div>
+                <div v-else class="wallpapers-grid">
+                    <div 
+                        v-for="(wall, idx) in wallpapers" 
+                        :key="idx" 
+                        class="wallpaper-grid-card"
+                        :class="{ 'active': currentWallpaperSrc.includes(wall) || (idx === 1 && currentWallpaperSrc.startsWith('data:image')) }"
+                        @click="selectWallpaper(wall)"
+                    >
+                        <img 
+                            :src="getWallpaperUrl(wall)" 
+                            alt="Wallpaper Thumbnail" 
+                            class="grid-thumbnail-img"
+                            loading="lazy"
+                        />
+                        <div class="grid-card-active-overlay">
+                            <i class="pi pi-check-circle check-badge"></i>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
-
-        <SettingsCard title="Taskbar Position" icon="pi pi-window-maximize" v-if="isWaybarInstalled">
-            <div class="position-buttons" style="padding: 20px;">
-                <button class="position-btn" :class="{ active: waybarPosition === 'top' }"
-                    @click="setWaybarPosition('top')" :disabled="changingPosition">
-                    <i class="pi pi-arrow-up"></i>
-                    <span>Top</span>
-                </button>
-                <button class="position-btn" :class="{ active: waybarPosition === 'left' }"
-                    @click="setWaybarPosition('left')" :disabled="changingPosition">
-                    <i class="pi pi-arrow-left"></i>
-                    <span>Left</span>
-                </button>
-                <button class="position-btn" :class="{ active: waybarPosition === 'right' }"
-                    @click="setWaybarPosition('right')" :disabled="changingPosition">
-                    <i class="pi pi-arrow-right"></i>
-                    <span>Right</span>
-                </button>
-                <button class="position-btn" :class="{ active: waybarPosition === 'bottom' }"
-                    @click="setWaybarPosition('bottom')" :disabled="changingPosition">
-                    <i class="pi pi-arrow-down"></i>
-                    <span>Bottom</span>
-                </button>
-            </div>
-        </SettingsCard>
-
-        <SettingsCard title="Dark Mode" :icon="isDark ? 'pi pi-moon' : 'pi pi-sun'">
-            <template #actions>
-                <label class="switch">
-                    <input type="checkbox" :checked="isDark" @change="toggleTheme">
-                    <span class="slider round"></span>
-                </label>
-            </template>
-        </SettingsCard>
-
-        <SettingsCard title="Cursor" icon="pi pi-stop-circle">
-            <div class="settings-row" style="padding: 20px;">
-                <div class="setting-control">
-                    <label class="setting-label">Theme</label>
-                    <select class="custom-select" v-model="selectedCursorTheme" @change="applyAppearanceSettings">
-                        <option v-for="theme in cursorThemes" :key="theme.name" :value="theme.name">{{ theme.name }}
-                        </option>
-                    </select>
-                </div>
-                <div class="setting-control">
-                    <label class="setting-label">Size</label>
-                    <select class="custom-select" v-model="selectedCursorSize" @change="applyAppearanceSettings">
-                        <option v-for="size in cursorSizes" :key="size" :value="size">{{ size }}px</option>
-                    </select>
-                </div>
-            </div>
-        </SettingsCard>
-
-        <SettingsCard title="GTK & Shell Theme" icon="pi pi-palette">
-            <div class="settings-row" style="padding: 20px;">
-                <div class="setting-control" style="width: 100%;">
-                    <select class="custom-select" v-model="selectedGtkTheme" @change="applyAppearanceSettings"
-                        style="width: 100%;">
-                        <option v-for="theme in gtkThemes" :key="theme.name" :value="theme.name">{{ theme.name }}
-                        </option>
-                    </select>
-                </div>
-            </div>
-        </SettingsCard>
-
-        <SettingsCard title="Window Layout" icon="pi pi-th-large">
-            <template #actions>
-                <button class="primary-btn small-btn" @click="applyHyprlandConfig">
-                    <i class="pi pi-save"></i> Apply
-                </button>
-            </template>
-
-            <div class="settings-grid" style="padding: 20px;">
-                <div class="setting-control">
-                    <label class="setting-label">Gaps In ({{ hyprlandConfig.gaps_in }}px)</label>
-                    <input type="range" class="slider-input" v-model="hyprlandConfig.gaps_in" min="0" max="50">
-                </div>
-                <div class="setting-control">
-                    <label class="setting-label">Gaps Out ({{ hyprlandConfig.gaps_out }}px)</label>
-                    <input type="range" class="slider-input" v-model="hyprlandConfig.gaps_out" min="0" max="50">
-                </div>
-                <div class="setting-control">
-                    <label class="setting-label">Border Size ({{ hyprlandConfig.border_size }}px)</label>
-                    <input type="range" class="slider-input" v-model="hyprlandConfig.border_size" min="0" max="10">
-                </div>
-                <div class="setting-control">
-                    <label class="setting-label">Rounding ({{ hyprlandConfig.rounding }}px)</label>
-                    <input type="range" class="slider-input" v-model="hyprlandConfig.rounding" min="0" max="30">
-                </div>
-                <div class="setting-control">
-                    <label class="setting-label">Active Opacity ({{ hyprlandConfig.active_opacity }})</label>
-                    <input type="range" class="slider-input" v-model="hyprlandConfig.active_opacity" min="0.1" max="1.0"
-                        step="0.05">
-                </div>
-                <div class="setting-control">
-                    <label class="setting-label">Inactive Opacity ({{ hyprlandConfig.inactive_opacity }})</label>
-                    <input type="range" class="slider-input" v-model="hyprlandConfig.inactive_opacity" min="0.1"
-                        max="1.0" step="0.05">
-                </div>
-            </div>
-        </SettingsCard>
-
-        <SettingsCard title="Effects & Blur" icon="pi pi-eye">
-            <template #actions>
-                <div class="toggle-wrapper" style="display: flex; align-items: center; gap: 8px;">
-                    <label class="switch">
-                        <input type="checkbox" v-model="hyprlandConfig.blur_enabled">
-                        <span class="slider round"></span>
-                    </label>
-                    <button class="primary-btn small-btn" @click="applyHyprlandConfig">
-                        <i class="pi pi-save"></i> Apply
-                    </button>
-                </div>
-            </template>
-
-            <div class="settings-grid" :class="{ 'disabled-grid': !hyprlandConfig.blur_enabled }"
-                style="padding: 20px;">
-                <div class="setting-control">
-                    <label class="setting-label">Blur Size ({{ hyprlandConfig.blur_size }})</label>
-                    <input type="range" class="slider-input" v-model="hyprlandConfig.blur_size" min="1" max="20"
-                        :disabled="!hyprlandConfig.blur_enabled">
-                </div>
-                <div class="setting-control">
-                    <label class="setting-label">Blur Passes ({{ hyprlandConfig.blur_passes }})</label>
-                    <input type="range" class="slider-input" v-model="hyprlandConfig.blur_passes" min="1" max="5"
-                        :disabled="!hyprlandConfig.blur_enabled">
-                </div>
-            </div>
-            <div class="settings-row"
-                style="margin-top: 20px; border-top: 1px solid var(--card-border); padding: 20px;">
-                <div class="setting-control"
-                    style="flex-direction: row; justify-content: space-between; align-items: center; flex:1;">
-                    <label class="setting-label" style="margin: 0; margin-right: 12px;">Disable Hyprland Logo</label>
-                    <label class="switch">
-                        <input type="checkbox" v-model="hyprlandConfig.disable_logo">
-                        <span class="slider round"></span>
-                    </label>
-                </div>
-            </div>
-        </SettingsCard>
     </PageLayout>
 </template>
 
 <style scoped>
-/* View specific styles */
-.card-content-wrapper {
+/* Page Layout Wrapper overrides if any */
+.view-title-container {
     display: flex;
     align-items: center;
+    gap: 12px;
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.title-icon {
+    color: var(--accent-color);
+    font-size: 22px;
+}
+
+/* Dashboard Main Card styling */
+.dashboard-glass-panel {
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 20px;
+    padding: 24px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    backdrop-filter: blur(20px);
+    display: flex;
+    flex-direction: column;
     gap: 20px;
+}
+
+/* Three Columns Configuration layout */
+.config-columns {
+    display: grid;
+    grid-template-columns: 1.4fr 1fr 1fr;
+    gap: 16px;
     width: 100%;
 }
 
-.image-frame {
-    width: 100%;
-    aspect-ratio: 16/9;
-    border-radius: 8px;
+.config-col {
+    border-radius: 14px;
     overflow: hidden;
-    background: var(--bg-secondary);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border: 8px solid rgb(102, 102, 102);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
-    position: relative;
-    margin-top: 20px;
+    height: 120px;
 }
 
-.wallpaper-img {
+/* Preview Column (Landscape) */
+.wallpaper-preview-frame {
+    width: 100%;
+    height: 100%;
+    border-radius: 14px;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.preview-img {
     width: 100%;
     height: 100%;
     object-fit: cover;
 }
 
-.change-btn-container {
-    position: absolute;
-    bottom: 10px;
-    left: 0px;
-    padding: 0 10px;
+/* Select File Column */
+.select-file-col {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px dashed rgba(255, 255, 255, 0.15);
     display: flex;
-    flex-direction: row;
-    justify-content: space-between;
     align-items: center;
-    width: 100%;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
 }
 
-.btn-change {
-    background: rgba(0, 0, 0, 0.6);
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    color: white;
-    padding: 10px 16px;
-    border-radius: 8px;
-    font-size: 13px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.2s;
+.select-file-col:hover:not(.disabled) {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: var(--accent-color);
+}
+
+.choose-file-card {
     display: flex;
+    flex-direction: column;
     align-items: center;
     gap: 8px;
-    z-index: 10;
+    color: var(--text-secondary);
 }
 
-.btn-change:hover {
-    background: rgba(0, 0, 0, 0.8);
-    transform: translateY(-2px);
-    border-color: rgba(255, 255, 255, 0.4);
+.select-file-col:hover .choose-file-card {
+    color: var(--text-primary);
 }
 
-.path-container {
-    margin-top: 4px;
+.choose-icon {
+    font-size: 24px;
+    opacity: 0.8;
 }
 
-.path-highlight {
-    display: inline-block;
-    padding: 8px 12px;
-    background-color: rgba(0, 0, 0, 0.6);
-    border-radius: 6px;
-    font-family: monospace;
-    color: white;
-    font-size: 0.85rem;
-    word-break: break-all;
+.choose-label {
+    font-size: 13px;
+    font-weight: 500;
 }
 
-/* Taskbar Position Card */
-.position-buttons {
+/* Theme Selector Cards */
+.theme-selector-col {
+    display: flex;
+    background: transparent;
+}
+
+.theme-cards-container {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 12px;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    width: 100%;
+    height: 100%;
 }
 
-.position-btn {
+.theme-card {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     gap: 8px;
-    padding: 16px 12px;
-    background-color: var(--bg-secondary);
-    border: 2px solid var(--card-border);
-    border-radius: 10px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    color: var(--text-secondary);
     cursor: pointer;
-    transition: all 0.2s;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.theme-card:hover {
+    background: rgba(255, 255, 255, 0.06);
     color: var(--text-primary);
-    font-size: 0.9rem;
+}
+
+.theme-card .theme-icon {
+    font-size: 20px;
+}
+
+.theme-card .theme-label {
+    font-size: 13px;
     font-weight: 500;
 }
 
-.position-btn i {
-    font-size: 1.2rem;
-    color: var(--text-secondary);
-    transition: color 0.2s;
+/* Light Active theme card style */
+.light-card.active {
+    background: #ffffff;
+    color: #121214;
+    border-color: #ffffff;
+    box-shadow: 0 4px 15px rgba(255, 255, 255, 0.15);
 }
 
-.position-btn:hover:not(:disabled) {
-    background-color: var(--card-bg);
+/* Dark Active theme card style (Peach/Amber theme) */
+.dark-card.active {
+    background: var(--accent-color);
+    color: #121214;
     border-color: var(--accent-color);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 15px rgba(229, 193, 151, 0.25);
 }
 
-.position-btn.active {
+/* Dynamic color scheme pills styling */
+.schemes-wrapper {
+    width: 100%;
+    overflow-x: auto;
+    padding-bottom: 4px;
+}
+
+.schemes-pills {
+    display: flex;
+    gap: 8px;
+    flex-wrap: nowrap;
+}
+
+.scheme-pill-btn {
+    padding: 8px 16px;
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    color: var(--text-secondary);
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.2s ease;
+}
+
+.scheme-pill-btn:hover {
+    background: rgba(255, 255, 255, 0.06);
+    color: var(--text-primary);
+}
+
+.scheme-pill-btn.active {
+    background: var(--accent-color);
+    color: #121214;
+    border-color: var(--accent-color);
+    font-weight: 600;
+    box-shadow: 0 2px 8px rgba(229, 193, 151, 0.2);
+}
+
+/* Transparency Row styling */
+.settings-row-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 0;
+}
+
+.row-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.row-icon {
+    font-size: 16px;
+    color: var(--text-secondary);
+}
+
+.row-label {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+/* Toggle Switch customized style */
+.switch-toggle {
+    position: relative;
+    display: inline-block;
+    width: 44px;
+    height: 24px;
+}
+
+.switch-toggle input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider-round {
+    position: absolute;
+    cursor: pointer;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-color: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    transition: .3s;
+    border-radius: 24px;
+}
+
+.slider-round:before {
+    position: absolute;
+    content: "";
+    height: 18px;
+    width: 18px;
+    left: 2px;
+    bottom: 2px;
+    background-color: #ffffff;
+    transition: .3s;
+    border-radius: 50%;
+}
+
+.switch-toggle input:checked + .slider-round {
     background-color: var(--accent-color);
     border-color: var(--accent-color);
-    color: white;
 }
 
-.position-btn.active i {
-    color: white;
+.switch-toggle input:checked + .slider-round:before {
+    transform: translateX(20px);
+    background-color: #121214;
 }
 
-/* Custom Select - Override or specific styling */
-.custom-select {
-    appearance: none;
-    -webkit-appearance: none;
-    -moz-appearance: none;
-    background-color: var(--bg-secondary);
-    border: 1px solid var(--input-border, rgba(255, 255, 255, 0.1));
+/* Divider styling */
+.panel-divider {
+    border: none;
+    border-top: 1px solid var(--separator-color);
+    margin: 8px 0;
+}
+
+/* Quick Select styling */
+.quick-select-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.quick-left {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.quick-title {
+    font-size: 15px;
+    font-weight: 700;
     color: var(--text-primary);
-    padding: 10px 14px;
-    border-radius: 8px;
-    font-size: 1rem;
-    width: 100%;
+}
+
+.folder-path-display {
+    font-size: 11px;
+    color: var(--text-secondary);
+}
+
+.path-highlight {
+    font-family: 'JetBrains Mono', monospace;
+    background: rgba(255, 255, 255, 0.04);
+    padding: 2px 6px;
+    border-radius: 4px;
+    color: var(--accent-color);
+}
+
+.quick-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.action-pill-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    color: var(--text-secondary);
+    font-size: 12px;
+    font-weight: 500;
     cursor: pointer;
-    transition: all 0.2s;
-    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
-    background-repeat: no-repeat;
-    background-position: right 10px center;
-    background-size: 16px;
-    padding-right: 40px;
+    transition: all 0.2s ease;
 }
 
-.custom-select:hover {
-    border-color: var(--accent-color);
-}
-
-.custom-select:focus {
-    outline: none;
-    border-color: var(--accent-color);
-    box-shadow: 0 0 0 3px rgba(var(--accent-color-rgb), 0.2);
-}
-
-.custom-select option {
-    background-color: var(--bg-secondary);
+.action-pill-btn:hover {
+    background: rgba(255, 255, 255, 0.08);
     color: var(--text-primary);
+}
+
+.action-pill-btn i {
+    font-size: 11px;
+}
+
+/* Wallpaper dynamic grid layout styling */
+.wallpaper-grid-container {
+    width: 100%;
+    margin-top: 4px;
+}
+
+.wallpapers-grid {
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    gap: 10px;
+    width: 100%;
+}
+
+.wallpaper-grid-card {
+    position: relative;
+    aspect-ratio: 1;
+    border-radius: 10px;
+    overflow: hidden;
+    border: 2px solid transparent;
+    cursor: pointer;
+    background: rgba(0, 0, 0, 0.2);
+    transition: all 0.2s ease;
+}
+
+.wallpaper-grid-card:hover {
+    transform: scale(1.03);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+}
+
+.grid-thumbnail-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.grid-card-active-overlay {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0, 0, 0, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.check-badge {
+    font-size: 18px;
+    color: var(--accent-color);
+}
+
+/* Active Thumbnail grid item style */
+.wallpaper-grid-card.active {
+    border-color: var(--accent-color);
+    box-shadow: 0 0 10px rgba(229, 193, 151, 0.4);
+}
+
+.wallpaper-grid-card.active .grid-card-active-overlay {
+    opacity: 1;
+}
+
+@media (max-width: 900px) {
+    .config-columns {
+        grid-template-columns: 1fr;
+    }
+    
+    .wallpapers-grid {
+        grid-template-columns: repeat(4, 1fr);
+    }
 }
 
 @media (max-width: 600px) {
-    .position-buttons {
-        grid-template-columns: repeat(2, 1fr);
+    .wallpapers-grid {
+        grid-template-columns: repeat(3, 1fr);
     }
+    .quick-select-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+}
+
+.empty-wallpapers-message {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 40px 20px;
+    background: rgba(255, 95, 86, 0.05);
+    border: 1px dashed rgba(255, 95, 86, 0.15);
+    border-radius: 12px;
+    color: #ff5f56;
+    font-size: 13px;
+    font-weight: 500;
+    text-align: center;
+    width: 100%;
+}
+
+.warning-icon {
+    font-size: 24px;
 }
 </style>
