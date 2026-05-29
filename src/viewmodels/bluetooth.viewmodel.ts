@@ -14,6 +14,7 @@ export function useBluetoothViewModel() {
     const devices = ref<BluetoothDevice[]>([]);
     const loading = ref(false);
     const connectingMac = ref<string | null>(null);
+    const localName = ref("Arch Linux PC");
 
     // Computed property for sorted devices: Connected > Connecting > Disconnected
     const sortedDevices = computed(() => {
@@ -124,6 +125,11 @@ export function useBluetoothViewModel() {
 
     onMounted(async () => {
         await checkStatus();
+        try {
+            localName.value = await invoke('get_local_adapter_name');
+        } catch (e) {
+            console.error("Failed to get local adapter name:", e);
+        }
         if (isEnabled.value) {
             await startScan();
             refreshDevices();
@@ -144,6 +150,7 @@ export function useBluetoothViewModel() {
         connect,
         connectingMac,
         sortedDevices,
+        localName,
         scan: refreshDevices // exposing as 'scan' for backward compatibility if template uses it, though we should update template
     };
 }
