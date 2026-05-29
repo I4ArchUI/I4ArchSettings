@@ -12,7 +12,7 @@ const menuItems = [
     { label: 'Wi-Fi', icon: 'pi pi-wifi', path: '/wifi' },
     { label: 'VPN', icon: 'pi pi-cloud', path: '/vpn' },
     { label: 'Bluetooth', icon: 'pi pi-mobile', path: '/bluetooth' },
-    { label: 'Wallpaper & Colors', icon: 'pi pi-palette', path: '/appearance' },
+    { label: 'Wallpaper', icon: 'pi pi-palette', path: '/appearance' },
     { label: 'Themes', icon: 'pi pi-sliders-h', path: '/themes' },
     { label: 'Displays', icon: 'pi pi-desktop', path: '/displays' },
     { label: 'Installed Apps', icon: 'pi pi-th-large', path: '/apps' },
@@ -86,8 +86,8 @@ const isActive = (item: any) => {
     margin-bottom: 4px;
     border-radius: 8px;
     cursor: pointer;
-    transition: color 0.2s cubic-bezier(0.4, 0, 0.2, 1),
-                transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: color 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+                transform 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     color: var(--text-secondary);
     position: relative;
     overflow: hidden;
@@ -102,7 +102,7 @@ const isActive = (item: any) => {
     border-radius: 8px;
     background-color: var(--item-hover-bg);
     transform: translateX(-100%);
-    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: transform 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     z-index: -1;
 }
 
@@ -119,7 +119,7 @@ const isActive = (item: any) => {
 .menu-item.active::before {
     background-color: var(--item-active-bg);
     transform: translateX(0);
-    animation: swipe-in 0.35s cubic-bezier(0.4, 0, 0.2, 1) both;
+    animation: swipe-in 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
 }
 
 .menu-item.active {

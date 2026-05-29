@@ -31,7 +31,34 @@ onUnmounted(() => {
 
 <template>
   <MainLayout>
-    <RouterView />
+    <RouterView v-slot="{ Component }">
+      <Transition name="page-fade" mode="out-in">
+        <component :is="Component" />
+      </Transition>
+    </RouterView>
   </MainLayout>
   <ToastContainer />
 </template>
+
+<style>
+/* Page transition: gentle fade + subtle upward slide */
+.page-fade-enter-active {
+  transition: opacity 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+              transform 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.page-fade-leave-active {
+  transition: opacity 0.2s cubic-bezier(0.55, 0, 1, 0.45),
+              transform 0.2s cubic-bezier(0.55, 0, 1, 0.45);
+}
+
+.page-fade-enter-from {
+  opacity: 0;
+  transform: translateY(12px);
+}
+
+.page-fade-leave-to {
+  opacity: 0;
+  transform: translateY(-8px);
+}
+</style>

@@ -4,8 +4,6 @@ import PageLayout from '../components/common/PageLayout.vue';
 
 const {
     loading,
-    isDark,
-    toggleTheme,
     cursorThemes,
     gtkThemes,
     selectedCursorTheme,
@@ -15,8 +13,6 @@ const {
     hyprlandConfig,
     waybarPosition,
     changingPosition,
-    isWaybarInstalled,
-    isKittyInstalled,
     applyAppearanceSettings,
     applyHyprlandConfig,
     setWaybarPosition
