@@ -8,7 +8,6 @@ const route = useRoute();
 const { searchQuery } = useSearch();
 
 const menuItems = [
-    { label: 'About System', icon: 'pi pi-info-circle', path: '/about' },
     { label: 'Wi-Fi', icon: 'pi pi-wifi', path: '/wifi' },
     { label: 'VPN', icon: 'pi pi-cloud', path: '/vpn' },
     { label: 'Bluetooth', icon: 'pi pi-mobile', path: '/bluetooth' },
@@ -21,6 +20,8 @@ const menuItems = [
     { label: 'Environment', icon: 'pi pi-box', path: '/env' },
     { label: 'System Update', icon: 'pi pi-history', path: '/system-update' },
 ];
+
+const aboutItem = { label: 'About System', icon: 'pi pi-info-circle', path: '/about' };
 
 // Computed list filtered by the header search query
 const filteredMenuItems = computed(() => {
@@ -40,7 +41,7 @@ const isActive = (item: any) => {
 
 <template>
     <div class="sidebar-container">
-        <!-- Menu List -->
+        <!-- Scrollable Menu List -->
         <div class="menu-list">
             <div 
                 v-for="(item, index) in filteredMenuItems" 
@@ -61,6 +62,21 @@ const isActive = (item: any) => {
                 <span>No match found</span>
             </div>
         </div>
+
+        <!-- Pinned Bottom: About System -->
+        <div class="sidebar-footer">
+            <div class="footer-divider"></div>
+            <div
+                class="menu-item"
+                :class="{ 'active': isActive(aboutItem) }"
+                @click="navigate(aboutItem.path)"
+            >
+                <div class="icon-wrapper">
+                    <i :class="aboutItem.icon" class="item-icon"></i>
+                </div>
+                <span class="label">{{ aboutItem.label }}</span>
+            </div>
+        </div>
     </div>
 </template>
 
@@ -77,6 +93,19 @@ const isActive = (item: any) => {
     flex: 1;
     overflow-y: auto;
     padding: 10px;
+    padding-bottom: 4px;
+}
+
+.sidebar-footer {
+    padding: 0 10px 10px 10px;
+    flex-shrink: 0;
+}
+
+.footer-divider {
+    height: 1px;
+    background: rgba(255, 255, 255, 0.08);
+    margin: 0 4px 8px 4px;
+    border-radius: 1px;
 }
 
 .menu-item {
@@ -84,25 +113,27 @@ const isActive = (item: any) => {
     align-items: center;
     padding: 10px 14px;
     margin-bottom: 4px;
-    border-radius: 8px;
+    border-radius: 14px;
     cursor: pointer;
-    transition: color 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94),
-                transform 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    transition: color 0.45s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+                transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     color: var(--text-secondary);
     position: relative;
     overflow: hidden;
     z-index: 0;
+    border: 1px solid transparent;
 }
 
-/* The sliding fill layer */
+/* Glassmorphism sliding fill layer */
 .menu-item::before {
     content: '';
     position: absolute;
     inset: 0;
-    border-radius: 8px;
-    background-color: var(--item-hover-bg);
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.06);
+    backdrop-filter: blur(10px);
     transform: translateX(-100%);
-    transition: transform 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    transition: transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     z-index: -1;
 }
 
@@ -113,19 +144,21 @@ const isActive = (item: any) => {
 .menu-item:hover {
     color: var(--text-primary);
     transform: translateX(2px);
+    border-color: rgba(255, 255, 255, 0.06);
 }
 
-/* Active state: accent fill sweeps in from left */
+/* Active: accent glass fill sweeps in from left */
 .menu-item.active::before {
-    background-color: var(--item-active-bg);
+    background: rgba(229, 193, 151, 0.14);
+    backdrop-filter: blur(16px);
     transform: translateX(0);
-    animation: swipe-in 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
+    animation: swipe-in 0.65s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
 }
 
 .menu-item.active {
     color: var(--item-active-text);
     font-weight: 600;
-    /* Thin accent left indicator on top of the fill */
+    border-color: rgba(229, 193, 151, 0.15);
     box-shadow: inset 3px 0 0 var(--accent-color);
 }
 
@@ -135,21 +168,29 @@ const isActive = (item: any) => {
 }
 
 .icon-wrapper {
-    width: 20px;
-    height: 20px;
+    width: 22px;
+    height: 22px;
     display: flex;
     align-items: center;
     justify-content: center;
     margin-right: 12px;
+    flex-shrink: 0;
 }
 
 .item-icon {
     font-size: 14px;
+    transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.menu-item.active .item-icon {
+    transform: scale(1.1);
+    filter: drop-shadow(0 0 4px rgba(229, 193, 151, 0.5));
 }
 
 .label {
     font-size: 13px;
     font-weight: 500;
+    letter-spacing: 0.01em;
 }
 
 /* Empty Search styles */
