@@ -11,9 +11,22 @@ const {
     selectedGtkTheme,
     cursorSizes,
     hyprlandConfig,
+    waybarPosition,
+    changingPosition,
     applyAppearanceSettings,
-    applyHyprlandConfig
+    applyHyprlandConfig,
+    setWaybarPosition
 } = useAppearanceViewModel();
+
+const getIconForPosition = (position: string) => {
+    switch (position) {
+        case 'top': return 'pi pi-align-top';
+        case 'bottom': return 'pi pi-align-bottom';
+        case 'left': return 'pi pi-align-left';
+        case 'right': return 'pi pi-align-right';
+        default: return 'pi pi-align-top';
+    }
+};
 </script>
 
 <template>
@@ -235,6 +248,38 @@ const {
                     </div>
                 </div>
             </div>
+
+            <!-- Section 3: Status Bar (Waybar) -->
+            <div class="settings-card glass-panel">
+                <div class="card-header">
+                    <div class="info-icon-wrapper" style="background: linear-gradient(135deg, var(--accent-color), #4caf50); box-shadow: 0 4px 12px rgba(var(--accent-rgb), 0.3);">
+                        <i class="pi pi-align-top"></i>
+                    </div>
+                    <div class="info-content-text">
+                        <h3>Status Bar (Waybar)</h3>
+                        <p>Configure the position of the Waybar status panel</p>
+                    </div>
+                </div>
+                
+                <div class="card-body">
+                    <div class="setting-control">
+                        <label class="setting-label">Bar Position</label>
+                        <div class="position-selector-grid">
+                            <button 
+                                v-for="pos in ['top', 'bottom', 'left', 'right']" 
+                                :key="pos" 
+                                class="pos-option-btn"
+                                :class="{ 'active': waybarPosition === pos }"
+                                @click="setWaybarPosition(pos)"
+                                :disabled="changingPosition"
+                            >
+                                <i :class="getIconForPosition(pos)" class="pos-icon"></i>
+                                <span class="pos-label">{{ pos }}</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </PageLayout>
 </template>
@@ -328,5 +373,58 @@ const {
     margin-top: 8px;
     border-top: 1px solid var(--card-border);
     padding-top: 16px;
+}
+
+/* Position Selector Grid */
+.position-selector-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    padding: 4px;
+    background: var(--bg-secondary);
+    border-radius: 8px;
+    border: 1px solid var(--card-border);
+}
+
+@media (max-width: 600px) {
+    .position-selector-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+.pos-option-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 10px 16px;
+    background: transparent;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    font-weight: 500;
+}
+
+.pos-option-btn:hover:not(.active):not(:disabled) {
+    background: var(--card-bg);
+    color: var(--text-primary);
+}
+
+.pos-option-btn.active {
+    background: var(--accent-color);
+    color: #121214;
+    box-shadow: 0 2px 6px rgba(var(--accent-rgb), 0.25);
+    font-weight: 600;
+}
+
+.pos-icon {
+    font-size: 1rem;
+}
+
+.pos-label {
+    text-transform: capitalize;
 }
 </style>
