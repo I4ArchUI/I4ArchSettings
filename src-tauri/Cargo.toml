@@ -28,3 +28,6 @@ base64 = "0.22.1"
 bluer = { version = "0.17.3", features = ["bluetoothd"] }
 futures = "0.3"
 
+[target.'cfg(target_os = "linux")'.dependencies]
+nmrs = "3"
+
