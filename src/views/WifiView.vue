@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, onUnmounted } from 'vue';
+import { ref, watch, onMounted, onUnmounted } from 'vue';
 import { useWifiViewModel } from '../viewmodels/wifi.viewmodel';
 import WifiConfigModal from '@/components/wifi/WifiConfigModal.vue';
 import WifiPasswordModal from '@/components/wifi/WifiPasswordModal.vue';
@@ -53,11 +53,48 @@ const triggerToggle = () => {
 onMounted(() => {
     window.addEventListener('shortcut-refresh', triggerScan);
     window.addEventListener('shortcut-toggle', triggerToggle);
+    window.addEventListener('keydown', handleListKeyDown);
 });
 
 onUnmounted(() => {
     window.removeEventListener('shortcut-refresh', triggerScan);
     window.removeEventListener('shortcut-toggle', triggerToggle);
+    window.removeEventListener('keydown', handleListKeyDown);
+});
+
+const selectedIndex = ref(0);
+
+const handleListKeyDown = (e: KeyboardEvent) => {
+    const activeElement = document.activeElement;
+    const isTyping = activeElement && (
+        activeElement.tagName === 'INPUT' ||
+        activeElement.tagName === 'TEXTAREA' ||
+        activeElement.tagName === 'SELECT' ||
+        activeElement.getAttribute('contenteditable') === 'true'
+    );
+    if (isTyping) return;
+
+    if (!isEnabled.value || networks.value.length === 0) return;
+
+    if (e.key === 'ArrowDown') {
+        selectedIndex.value = (selectedIndex.value + 1) % networks.value.length;
+        e.preventDefault();
+    } else if (e.key === 'ArrowUp') {
+        selectedIndex.value = (selectedIndex.value - 1 + networks.value.length) % networks.value.length;
+        e.preventDefault();
+    } else if (e.key === 'Enter') {
+        const net = networks.value[selectedIndex.value];
+        if (net) {
+            connect(net);
+        }
+        e.preventDefault();
+    }
+};
+
+watch(networks, (newVal) => {
+    if (selectedIndex.value >= newVal.length) {
+        selectedIndex.value = Math.max(0, newVal.length - 1);
+    }
 });
 </script>
 
@@ -88,12 +125,13 @@ onUnmounted(() => {
         <div v-else class="settings-card glass-panel" style="padding: 0;">
             <div class="settings-group-list">
                 <div 
-                    v-for="net in networks" 
+                    v-for="(net, index) in networks" 
                     :key="net.ssid" 
                     class="settings-item"
                     :class="{ 
                         'disabled': connectingSsid !== null && connectingSsid !== net.ssid, 
-                        'connecting': connectingSsid === net.ssid 
+                        'connecting': connectingSsid === net.ssid,
+                        'selected': index === selectedIndex
                     }"
                     @click="connect(net)"
                 >
@@ -272,5 +310,10 @@ onUnmounted(() => {
     opacity: 0.5;
     pointer-events: none;
     cursor: default;
+}
+
+.settings-item.selected {
+    background-color: var(--item-hover-bg) !important;
+    box-shadow: inset 3px 0 0 0 var(--accent-color) !important;
 }
 </style>
