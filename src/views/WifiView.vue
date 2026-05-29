@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { useWifiViewModel } from '../viewmodels/wifi.viewmodel';
 import WifiConfigModal from '@/components/wifi/WifiConfigModal.vue';
+import WifiPasswordModal from '@/components/wifi/WifiPasswordModal.vue';
 import LoadingState from '@/components/LoadingState.vue';
 import PageLayout from '../components/common/PageLayout.vue';
 import SettingsCard from '../components/common/SettingsCard.vue';
@@ -19,7 +20,15 @@ const {
     connect,
     openConfig,
     closeConfig,
-    saveConfig
+    saveConfig,
+    
+    // Password Modal states & actions
+    showPasswordModal,
+    connectingPassword,
+    passwordErrorMsg,
+    selectedNetwork,
+    connectWithPassword,
+    closePasswordModal
 } = useWifiViewModel();
 </script>
 
@@ -98,6 +107,17 @@ const {
         :saving="savingConfig"
         @close="closeConfig"
         @save="saveConfig"
+    />
+
+    <!-- Password Prompt Modal Component -->
+    <WifiPasswordModal
+        :visible="showPasswordModal"
+        :ssid="selectedSsid"
+        :security="selectedNetwork?.security"
+        :saving="connectingPassword"
+        :error-msg="passwordErrorMsg"
+        @close="closePasswordModal"
+        @connect="connectWithPassword"
     />
   </PageLayout>
 </template>
