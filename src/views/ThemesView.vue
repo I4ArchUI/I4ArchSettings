@@ -86,40 +86,6 @@ const getIconForPosition = (position: string) => {
                 </div>
                 
                 <div class="card-body">
-                    <!-- Color Scheme (Light / Dark) -->
-                    <div class="setting-control full-width">
-                        <label class="setting-label">Color Scheme</label>
-                        <div class="theme-cards-container">
-                            <div 
-                                class="theme-card light-card" 
-                                :class="{ 'active': !isDark }"
-                                @click="isDark ? toggleTheme() : null"
-                            >
-                                <i class="pi pi-sun theme-icon"></i>
-                                <span class="theme-label">Light</span>
-                            </div>
-                            <div 
-                                class="theme-card dark-card" 
-                                :class="{ 'active': isDark }"
-                                @click="!isDark ? toggleTheme() : null"
-                            >
-                                <i class="pi pi-moon theme-icon"></i>
-                                <span class="theme-label">Dark</span>
-                            </div>
-                        </div>
-                        <!-- Kitty terminal theme badge -->
-                        <div v-if="isKittyInstalled" class="kitty-badge">
-                            <i class="pi pi-check-circle kitty-icon"></i>
-                            <span>Kitty terminal theme will also be updated</span>
-                        </div>
-                        <div v-if="isWaybarInstalled" class="kitty-badge">
-                            <i class="pi pi-check-circle kitty-icon"></i>
-                            <span>Waybar theme will also be updated</span>
-                        </div>
-                    </div>
-
-                    <hr class="section-divider" />
-
                     <div class="settings-grid">
                         <div class="setting-control">
                             <label class="setting-label">GTK Theme</label>
