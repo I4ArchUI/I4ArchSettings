@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, onMounted, onUnmounted } from 'vue';
 import { useBluetoothViewModel } from '../viewmodels/bluetooth.viewmodel';
 import LoadingState from '@/components/LoadingState.vue';
 import PageLayout from '../components/common/PageLayout.vue';
@@ -81,6 +81,19 @@ const computedDevices = computed(() => {
         };
     });
 });
+
+const triggerToggle = () => {
+    isEnabled.value = !isEnabled.value;
+    toggleBluetooth();
+};
+
+onMounted(() => {
+    window.addEventListener('shortcut-toggle', triggerToggle);
+});
+
+onUnmounted(() => {
+    window.removeEventListener('shortcut-toggle', triggerToggle);
+});
 </script>
 
 <template>
@@ -94,6 +107,7 @@ const computedDevices = computed(() => {
                 <input type="checkbox" v-model="isEnabled" @change="toggleBluetooth">
                 <span class="slider round"></span>
             </label>
+            <span class="kbd-hint"><kbd>Alt</kbd>+<kbd>S</kbd></span>
         </div>
     </template>
 
