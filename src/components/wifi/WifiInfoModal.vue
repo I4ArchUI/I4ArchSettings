@@ -169,8 +169,7 @@ const signalLabel = computed(() => {
 }
 
 .dialog-header {
-    padding: 24px 24px 16px 24px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    padding: 24px 24px 12px 24px;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -178,7 +177,7 @@ const signalLabel = computed(() => {
 
 .dialog h3 {
     margin: 0;
-    font-size: 18px;
+    font-size: 16px;
     font-weight: 600;
     color: var(--text-primary, #ffffff);
 }
@@ -219,7 +218,7 @@ const signalLabel = computed(() => {
 }
 
 .dialog-body {
-    padding: 20px 24px 24px 24px;
+    padding: 12px 24px 24px 24px;
     max-height: 480px;
     overflow-y: auto;
     display: flex;
