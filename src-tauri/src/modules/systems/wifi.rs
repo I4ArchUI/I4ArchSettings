@@ -440,22 +440,7 @@ mod mock_impl {
 
     fn configs() -> &'static Mutex<std::collections::HashMap<String, WifiConfig>> {
         static CONFIGS: OnceLock<Mutex<std::collections::HashMap<String, WifiConfig>>> = OnceLock::new();
-        CONFIGS.get_or_init(|| Mutex::new({
-            let mut map = std::collections::HashMap::new();
-            map.insert("Mock_Wifi_5G".to_string(), WifiConfig {
-                method: "auto".to_string(),
-                ip_address: "192.168.1.123".to_string(),
-                prefix: 24,
-                gateway: "192.168.1.1".to_string(),
-                dns: "8.8.8.8, 1.1.1.1".to_string(),
-                bssid: Some("00:11:22:33:44:55".to_string()),
-                frequency: Some("5 GHz (5180 MHz)".to_string()),
-                speed: Some("866 Mbps".to_string()),
-                interface: Some("wlan0".to_string()),
-                mac_address: Some("a0:b1:c2:d3:e4:f5".to_string()),
-            });
-            map
-        }))
+        CONFIGS.get_or_init(|| Mutex::new(std::collections::HashMap::new()))
     }
 
     pub async fn get_wifi_status() -> bool {
@@ -469,68 +454,10 @@ mod mock_impl {
     }
 
     pub async fn scan_wifi() -> Result<Vec<WifiNetwork>, String> {
-        if !*wifi_enabled().lock().unwrap() {
-            return Ok(Vec::new());
-        }
-
-        let active_ssid = connected_ssid().lock().unwrap().clone();
-        Ok(vec![
-            WifiNetwork {
-                ssid: "Mock_Wifi_5G".to_string(),
-                security: "WPA2".to_string(),
-                bars: "icon-wifi-strong".to_string(),
-                signal: 92,
-                active: active_ssid == "Mock_Wifi_5G",
-            },
-            WifiNetwork {
-                ssid: "Demo_Enterprise_802.1X".to_string(),
-                security: "WPA-Enterprise".to_string(),
-                bars: "icon-wifi-strong".to_string(),
-                signal: 88,
-                active: active_ssid == "Demo_Enterprise_802.1X",
-            },
-            WifiNetwork {
-                ssid: "Arch_AP_Guest".to_string(),
-                security: "WPA/WPA2".to_string(),
-                bars: "icon-wifi-medium".to_string(),
-                signal: 68,
-                active: active_ssid == "Arch_AP_Guest",
-            },
-            WifiNetwork {
-                ssid: "Coffee_Shop_Free".to_string(),
-                security: "".to_string(),
-                bars: "icon-wifi-weak".to_string(),
-                signal: 35,
-                active: active_ssid == "Coffee_Shop_Free",
-            },
-        ])
+        Ok(Vec::new())
     }
 
-    pub async fn connect_wifi(ssid: String, password: Option<String>, username: Option<String>) -> Result<String, String> {
-        if ssid == "Mock_Wifi_5G" || ssid == "Arch_AP_Guest" || ssid == "Demo_Enterprise_802.1X" {
-            if ssid == "Demo_Enterprise_802.1X" {
-                if let Some(ref user) = username {
-                    if user.is_empty() {
-                        return Err("Username/Identity is required for Enterprise".to_string());
-                    }
-                } else {
-                    return Err("Username/Identity is required for Enterprise".to_string());
-                }
-            }
-            if let Some(pwd) = password {
-                if pwd.is_empty() {
-                    return Err("Password cannot be empty".to_string());
-                }
-                if pwd == "error" {
-                    return Err("Authentication failed: incorrect password".to_string());
-                }
-            } else {
-                return Err("Security credentials required".to_string());
-            }
-        }
-
-        let mut active = connected_ssid().lock().unwrap();
-        *active = ssid.clone();
+    pub async fn connect_wifi(_ssid: String, _password: Option<String>, _username: Option<String>) -> Result<String, String> {
         Ok("Connected successfully".to_string())
     }
 
@@ -539,39 +466,17 @@ mod mock_impl {
         if let Some(conf) = lock.get(&ssid) {
             Ok(conf.clone())
         } else {
-            let (bssid, frequency, speed) = match ssid.as_str() {
-                "Demo_Enterprise_802.1X" => (
-                    Some("00:11:22:aa:bb:cc".to_string()),
-                    Some("5 GHz (5240 MHz)".to_string()),
-                    Some("1300 Mbps".to_string()),
-                ),
-                "Arch_AP_Guest" => (
-                    Some("00:11:22:66:77:88".to_string()),
-                    Some("2.4 GHz (2437 MHz)".to_string()),
-                    Some("144 Mbps".to_string()),
-                ),
-                "Coffee_Shop_Free" => (
-                    Some("00:11:22:11:22:33".to_string()),
-                    Some("2.4 GHz (2412 MHz)".to_string()),
-                    Some("54 Mbps".to_string()),
-                ),
-                _ => (
-                    Some("00:11:22:33:44:55".to_string()),
-                    Some("5 GHz (5180 MHz)".to_string()),
-                    Some("866 Mbps".to_string()),
-                ),
-            };
             Ok(WifiConfig {
                 method: "auto".to_string(),
                 ip_address: "".to_string(),
                 prefix: 24,
                 gateway: "".to_string(),
                 dns: "".to_string(),
-                bssid,
-                frequency,
-                speed,
-                interface: Some("wlan0".to_string()),
-                mac_address: Some("a0:b1:c2:d3:e4:f5".to_string()),
+                bssid: None,
+                frequency: None,
+                speed: None,
+                interface: None,
+                mac_address: None,
             })
         }
     }
