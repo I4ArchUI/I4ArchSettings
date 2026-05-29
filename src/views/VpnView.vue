@@ -6,6 +6,7 @@ import SettingsCard from '../components/common/SettingsCard.vue';
 import ModalDialog from '@/components/common/ModalDialog.vue';
 
 const {
+    selectedIndex,
     sortedConnections,
     loading,
     connectingUuid,
@@ -81,6 +82,7 @@ const getVpnTypeDetails = (typeName: string) => {
         <button class="action-btn" @click="openAddModal">
             <i class="pi pi-plus" style="margin-right: 6px;"></i>
             Add Connection
+            <span class="kbd-hint"><kbd>Alt</kbd>+<kbd>N</kbd></span>
         </button>
     </template>
     
@@ -100,9 +102,10 @@ const getVpnTypeDetails = (typeName: string) => {
         <div v-else class="settings-card glass-panel" style="padding: 0;">
              <div class="settings-group-list">
                 <div 
-                    v-for="conn in sortedConnections" 
+                    v-for="(conn, idx) in sortedConnections" 
                     :key="conn.uuid"
                     class="settings-item"
+                    :class="{ 'selected': idx === selectedIndex }"
                     @click="toggleConnection(conn)"
                 >
                     <!-- Vibrant dynamic colored glass icon -->
@@ -521,5 +524,10 @@ select.form-control {
 .btn-secondary:hover {
     background-color: var(--bg-hover);
     color: var(--text-primary);
+}
+
+.settings-item.selected {
+    background-color: var(--item-hover-bg) !important;
+    box-shadow: inset 3px 0 0 0 var(--accent-color) !important;
 }
 </style>

@@ -6,6 +6,7 @@ import PageLayout from '../components/common/PageLayout.vue';
 import SettingsCard from '../components/common/SettingsCard.vue';
 
 const {
+    selectedIndex,
     isEnabled,
     sortedDevices,
     loading,
@@ -94,6 +95,7 @@ const computedDevices = computed(() => {
                 <input type="checkbox" v-model="isEnabled" @change="toggleBluetooth">
                 <span class="slider round"></span>
             </label>
+            <span class="kbd-hint"><kbd>Alt</kbd>+<kbd>S</kbd></span>
         </div>
     </template>
 
@@ -144,10 +146,14 @@ const computedDevices = computed(() => {
                 
                 <!-- FLOAT DEVICES (ORBIT NODES) -->
                 <div 
-                    v-for="dev in computedDevices" 
+                    v-for="(dev, idx) in computedDevices" 
                     :key="dev.mac"
                     class="device-bubble-wrap"
-                    :class="[dev.floatClass, { 'is-connected': dev.connected, 'is-connecting': dev.mac === connectingMac }]"
+                    :class="[dev.floatClass, { 
+                        'is-connected': dev.connected, 
+                        'is-connecting': dev.mac === connectingMac,
+                        'selected': idx === selectedIndex
+                    }]"
                     :style="{ 
                         left: dev.x + 'px', 
                         top: dev.y + 'px',
@@ -663,5 +669,19 @@ const computedDevices = computed(() => {
     color: var(--text-secondary);
     opacity: 0.25;
     margin-bottom: 20px;
+}
+
+/* Selected state for keyboard navigation */
+.device-bubble-wrap.selected .device-bubble {
+    outline: 2px solid var(--accent-color) !important;
+    outline-offset: 4px;
+    box-shadow: 0 0 25px rgba(229, 193, 151, 0.65) !important;
+    transform: scale(1.08);
+}
+
+.device-bubble-wrap.selected .device-tooltip {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateX(-50%) scale(1);
 }
 </style>

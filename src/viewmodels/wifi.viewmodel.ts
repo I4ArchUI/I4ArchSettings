@@ -1,4 +1,4 @@
-import { ref, onMounted, onUnmounted } from 'vue';
+import { ref, onMounted, onUnmounted, watch } from 'vue';
 import { invoke } from '@tauri-apps/api/core';
 import type { WifiNetwork, WifiConfig } from '../models/wifi.model.ts';
 import { useToast } from '../composables/useToast';
@@ -259,6 +259,52 @@ export function useWifiViewModel() {
         showConfigModal.value = true;
     };
 
+    const triggerToggle = () => {
+        isEnabled.value = !isEnabled.value;
+        toggleWifi();
+    };
+
+    const triggerScan = () => {
+        if (isEnabled.value) {
+            scan(true);
+        }
+    };
+
+    const selectedIndex = ref(0);
+
+    const handleListKeyDown = (e: KeyboardEvent) => {
+        const activeElement = document.activeElement;
+        const isTyping = activeElement && (
+            activeElement.tagName === 'INPUT' ||
+            activeElement.tagName === 'TEXTAREA' ||
+            activeElement.tagName === 'SELECT' ||
+            activeElement.getAttribute('contenteditable') === 'true'
+        );
+        if (isTyping) return;
+
+        if (!isEnabled.value || networks.value.length === 0) return;
+
+        if (e.key === 'ArrowDown') {
+            selectedIndex.value = (selectedIndex.value + 1) % networks.value.length;
+            e.preventDefault();
+        } else if (e.key === 'ArrowUp') {
+            selectedIndex.value = (selectedIndex.value - 1 + networks.value.length) % networks.value.length;
+            e.preventDefault();
+        } else if (e.key === 'Enter') {
+            const net = networks.value[selectedIndex.value];
+            if (net) {
+                connect(net);
+            }
+            e.preventDefault();
+        }
+    };
+
+    watch(networks, (newVal) => {
+        if (selectedIndex.value >= newVal.length) {
+            selectedIndex.value = Math.max(0, newVal.length - 1);
+        }
+    });
+
     // --- Lifecycle ---
     onMounted(async () => {
         await checkStatus();
@@ -266,13 +312,20 @@ export function useWifiViewModel() {
             await scan(false);
             startScanInterval();
         }
+        window.addEventListener('shortcut-refresh', triggerScan);
+        window.addEventListener('shortcut-toggle', triggerToggle);
+        window.addEventListener('keydown', handleListKeyDown);
     });
 
     onUnmounted(() => {
         stopScanInterval();
+        window.removeEventListener('shortcut-refresh', triggerScan);
+        window.removeEventListener('shortcut-toggle', triggerToggle);
+        window.removeEventListener('keydown', handleListKeyDown);
     });
 
     return {
+        selectedIndex,
         isEnabled,
         networks,
         loading,

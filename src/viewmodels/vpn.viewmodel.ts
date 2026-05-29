@@ -1,4 +1,4 @@
-import { ref, computed, onMounted, onUnmounted } from 'vue';
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
 import { invoke } from '@tauri-apps/api/core';
 import { open } from '@tauri-apps/plugin-dialog';
 import type { VpnConnection } from '../models/vpn.model';
@@ -210,6 +210,43 @@ export function useVpnViewModel() {
         }
     };
 
+    const selectedIndex = ref(0);
+
+    const handleListKeyDown = (e: KeyboardEvent) => {
+        const activeElement = document.activeElement;
+        const isTyping = activeElement && (
+            activeElement.tagName === 'INPUT' ||
+            activeElement.tagName === 'TEXTAREA' ||
+            activeElement.tagName === 'SELECT' ||
+            activeElement.getAttribute('contenteditable') === 'true'
+        );
+        if (isTyping) return;
+
+        if (showAddModal.value) return;
+
+        if (sortedConnections.value.length === 0) return;
+
+        if (e.key === 'ArrowDown') {
+            selectedIndex.value = (selectedIndex.value + 1) % sortedConnections.value.length;
+            e.preventDefault();
+        } else if (e.key === 'ArrowUp') {
+            selectedIndex.value = (selectedIndex.value - 1 + sortedConnections.value.length) % sortedConnections.value.length;
+            e.preventDefault();
+        } else if (e.key === 'Enter') {
+            const conn = sortedConnections.value[selectedIndex.value];
+            if (conn) {
+                toggleConnection(conn);
+            }
+            e.preventDefault();
+        }
+    };
+
+    watch(sortedConnections, (newVal) => {
+        if (selectedIndex.value >= newVal.length) {
+            selectedIndex.value = Math.max(0, newVal.length - 1);
+        }
+    });
+
     // --- Lifecycle ---
     let refreshInterval: ReturnType<typeof setInterval> | null = null;
 
@@ -218,13 +255,18 @@ export function useVpnViewModel() {
         await fetchConnections();
         // Periodically refresh connection status
         refreshInterval = setInterval(fetchConnections, 5000);
+        window.addEventListener('shortcut-add', openAddModal);
+        window.addEventListener('keydown', handleListKeyDown);
     });
 
     onUnmounted(() => {
         if (refreshInterval) clearInterval(refreshInterval);
+        window.removeEventListener('shortcut-add', openAddModal);
+        window.removeEventListener('keydown', handleListKeyDown);
     });
 
     return {
+        selectedIndex,
         connections,
         sortedConnections,
         loading,

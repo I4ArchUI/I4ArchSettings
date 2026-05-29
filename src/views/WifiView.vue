@@ -9,6 +9,7 @@ import SettingsCard from '../components/common/SettingsCard.vue';
 import loadingGif from '@/assets/loading-cat.gif';
 
 const {
+    selectedIndex,
     isEnabled,
     networks,
     loading,
@@ -49,6 +50,7 @@ const {
                 <input type="checkbox" v-model="isEnabled" @change="toggleWifi">
                 <span class="slider round"></span>
             </label>
+            <span class="kbd-hint"><kbd>Alt</kbd>+<kbd>S</kbd></span>
         </div>
     </template>
 
@@ -64,12 +66,13 @@ const {
         <div v-else class="settings-card glass-panel" style="padding: 0;">
             <div class="settings-group-list">
                 <div 
-                    v-for="net in networks" 
+                    v-for="(net, index) in networks" 
                     :key="net.ssid" 
                     class="settings-item"
                     :class="{ 
                         'disabled': connectingSsid !== null && connectingSsid !== net.ssid, 
-                        'connecting': connectingSsid === net.ssid 
+                        'connecting': connectingSsid === net.ssid,
+                        'selected': index === selectedIndex
                     }"
                     @click="connect(net)"
                 >
@@ -248,5 +251,10 @@ const {
     opacity: 0.5;
     pointer-events: none;
     cursor: default;
+}
+
+.settings-item.selected {
+    background-color: var(--item-hover-bg) !important;
+    box-shadow: inset 3px 0 0 0 var(--accent-color) !important;
 }
 </style>
