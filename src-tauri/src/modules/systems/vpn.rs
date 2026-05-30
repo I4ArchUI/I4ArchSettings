@@ -35,7 +35,7 @@ trait NetworkManager {
         active_connection: zbus::zvariant::ObjectPath<'_>,
     ) -> zbus::Result<()>;
 
-    #[zbus::interface(property)]
+    #[zbus(property)]
     fn active_connections(&self) -> zbus::Result<Vec<zbus::zvariant::OwnedObjectPath>>;
 }
 
@@ -45,10 +45,10 @@ trait NetworkManager {
     default_service = "org.freedesktop.NetworkManager"
 )]
 trait ActiveConnection {
-    #[zbus::interface(property)]
+    #[zbus(property)]
     fn uuid(&self) -> zbus::Result<String>;
 
-    #[zbus::interface(property)]
+    #[zbus(property)]
     fn connection(&self) -> zbus::Result<zbus::zvariant::OwnedObjectPath>;
 }
 

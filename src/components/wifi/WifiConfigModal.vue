@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { onMounted, onUnmounted } from 'vue';
 import type { WifiConfig } from '../../models/wifi.model';
 
 interface Props {
@@ -13,12 +14,26 @@ interface Emits {
     (e: 'save'): void;
 }
 
-defineProps<Props>();
+const props = defineProps<Props>();
 const emit = defineEmits<Emits>();
 
 const closeDialog = () => {
     emit('close');
 };
+
+const onKeydown = (e: KeyboardEvent) => {
+    if (e.key === 'Escape' && props.visible && !props.saving) {
+        closeDialog();
+    }
+};
+
+onMounted(() => {
+    document.addEventListener('keydown', onKeydown);
+});
+
+onUnmounted(() => {
+    document.removeEventListener('keydown', onKeydown);
+});
 </script>
 
 <template>

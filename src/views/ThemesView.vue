@@ -72,39 +72,20 @@ const getIconForPosition = (position: string) => {
 
             <div class="settings-card glass-panel">
                 <div class="card-header">
-                    <div class="info-icon-wrapper">
-                        <i class="pi pi-palette"></i>
+                    <div class="info-icon-wrapper" style="background: linear-gradient(135deg, #2563eb, #7c3aed); box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);">
+                        <i class="pi pi-mouse-pointer"></i>
                     </div>
                     <div class="info-content-text">
-                        <h3>System Theme</h3>
-                        <p>Customize color scheme, GTK themes, mouse cursors, and cursor sizes</p>
+                        <h3>Cursor</h3>
                     </div>
                 </div>
                 
                 <div class="card-body">
                     <div class="settings-grid">
                         <div class="setting-control">
-                            <label class="setting-label">GTK Theme</label>
+                            <label class="setting-label">Theme</label>
                             <div class="select-wrapper">
-                                <select v-model="selectedGtkTheme" class="styled-select">
-                                    <option value="" disabled>Select a theme...</option>
-                                    <option 
-                                        v-for="theme in gtkThemes" 
-                                        :key="theme.name" 
-                                        :value="theme.name"
-                                    >
-                                        {{ theme.name }}
-                                    </option>
-                                    <option v-if="gtkThemes.length === 0" value="Adwaita">Adwaita (Default)</option>
-                                </select>
-                                <i class="pi pi-chevron-down select-icon"></i>
-                            </div>
-                        </div>
-
-                        <div class="setting-control">
-                            <label class="setting-label">Cursor Theme</label>
-                            <div class="select-wrapper">
-                                <select v-model="selectedCursorTheme" class="styled-select">
+                                <select v-model="selectedCursorTheme" class="styled-select" @change="applyAppearanceSettings">
                                     <option value="" disabled>Select a cursor theme...</option>
                                     <option 
                                         v-for="cursor in cursorThemes" 
@@ -120,28 +101,48 @@ const getIconForPosition = (position: string) => {
                         </div>
 
                         <div class="setting-control">
-                            <label class="setting-label">Cursor Size</label>
+                            <label class="setting-label">Size</label>
                             <div class="select-wrapper">
-                                <select v-model.number="selectedCursorSize" class="styled-select">
+                                <select v-model.number="selectedCursorSize" class="styled-select" @change="applyAppearanceSettings">
                                     <option 
                                         v-for="size in cursorSizes" 
                                         :key="size" 
                                         :value="size"
                                     >
-                                        {{ size }} px
+                                        {{ size }}px
                                     </option>
                                 </select>
                                 <i class="pi pi-chevron-down select-icon"></i>
                             </div>
                         </div>
                     </div>
-                    
-                    <div class="action-footer">
-                        <button class="primary-btn" @click="applyAppearanceSettings" :disabled="loading">
-                            <i v-if="loading" class="pi pi-spin pi-spinner"></i>
-                            <i v-else class="pi pi-check"></i>
-                            Apply Themes
-                        </button>
+                </div>
+            </div>
+
+            <div class="settings-card glass-panel">
+                <div class="card-header">
+                    <div class="info-icon-wrapper" style="background: linear-gradient(135deg, #2563eb, #7c3aed); box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);">
+                        <i class="pi pi-palette"></i>
+                    </div>
+                    <div class="info-content-text">
+                        <h3>GTK & Shell Theme</h3>
+                    </div>
+                </div>
+                
+                <div class="card-body">
+                    <div class="select-wrapper">
+                        <select v-model="selectedGtkTheme" class="styled-select" @change="applyAppearanceSettings">
+                            <option value="" disabled>Select a theme...</option>
+                            <option 
+                                v-for="theme in gtkThemes" 
+                                :key="theme.name" 
+                                :value="theme.name"
+                            >
+                                {{ theme.name }}
+                            </option>
+                            <option v-if="gtkThemes.length === 0" value="Adwaita">Adwaita (Default)</option>
+                        </select>
+                        <i class="pi pi-chevron-down select-icon"></i>
                     </div>
                 </div>
             </div>

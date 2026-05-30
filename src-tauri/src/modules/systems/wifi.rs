@@ -112,12 +112,15 @@ mod linux_impl {
 
             let active = current_ssid.as_ref().map(|s| s == &net.ssid).unwrap_or(false);
             
-            // Map security using format debug to be highly compile-safe
-            let security_str = format!("{:?}", net.security);
-            let security = if security_str.contains("None") {
-                "".to_string()
+            // Map security using net.secured
+            let security = if net.secured {
+                if net.is_eap {
+                    "WPA/WPA2 Enterprise".to_string()
+                } else {
+                    "WPA/WPA2".to_string()
+                }
             } else {
-                "WPA/WPA2".to_string()
+                "".to_string()
             };
 
             let signal = net.strength.unwrap_or(0);
@@ -139,7 +142,7 @@ mod linux_impl {
         }
 
         // Deduplicate SSID
-        let mut map = HashMap::new();
+        let mut map: HashMap<String, WifiNetwork> = HashMap::new();
         for item in result {
             match map.get(&item.ssid) {
                 Some(existing) => {
@@ -172,8 +175,7 @@ mod linux_impl {
                 if let Some(ref user) = username {
                     if !user.is_empty() {
                         nmrs::WifiSecurity::WpaEap {
-                            identity: user.clone(),
-                            password: pwd.clone(),
+                            opts: nmrs::EapOptions::new(user.clone(), pwd.clone()),
                         }
                     } else {
                         nmrs::WifiSecurity::WpaPsk { psk: pwd.clone() }
@@ -182,7 +184,7 @@ mod linux_impl {
                     nmrs::WifiSecurity::WpaPsk { psk: pwd.clone() }
                 }
             }
-            _ => nmrs::WifiSecurity::None,
+            _ => nmrs::WifiSecurity::Open,
         };
 
         nm.connect(&ssid, None, security).await.map_err(|e| e.to_string())?;
@@ -341,7 +343,7 @@ mod linux_impl {
             .await
             .map_err(|e| e.to_string())?;
 
-        let mut settings = proxy.get_settings().await.map_err(|e| e.to_string())?;
+        let settings = proxy.get_settings().await.map_err(|e| e.to_string())?;
 
         let mut ipv4 = HashMap::new();
         ipv4.insert("method".to_string(), Value::from(config.method.clone()));
@@ -414,7 +416,7 @@ mod linux_impl {
             update_map.insert(sec_name, sec_map);
         }
 
-        proxy.update(update_map).map_err(|e| e.to_string())?;
+        proxy.update(update_map).await.map_err(|e| e.to_string())?;
         Ok(())
     }
 }

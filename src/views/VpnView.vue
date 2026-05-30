@@ -9,7 +9,7 @@ const {
     selectedIndex,
     sortedConnections,
     loading,
-    connectingUuid,
+    transitioningUuid,
     toggleConnection,
     showAddModal,
     formData,
@@ -79,11 +79,13 @@ const getVpnTypeDetails = (typeName: string) => {
     <template #title>VPN</template>
 
     <template #actions>
-        <button class="action-btn" @click="openAddModal">
-            <i class="pi pi-plus" style="margin-right: 6px;"></i>
-            Add Connection
+        <div style="display: flex; align-items: center; gap: 8px;">
+            <button class="action-btn" @click="openAddModal">
+                <i class="pi pi-plus" style="margin-right: 6px;"></i>
+                Add Connection
+            </button>
             <span class="kbd-hint"><kbd>Alt</kbd>+<kbd>N</kbd></span>
-        </button>
+        </div>
     </template>
     
     <div class="vpn-list">
@@ -130,12 +132,8 @@ const getVpnTypeDetails = (typeName: string) => {
                         </span>
                     </div>
                     
-                    <div v-if="conn.active" class="connected-label" style="color: var(--accent-color); font-size: 1.2rem;">
-                         <i class="pi pi-check" style="font-weight: bold;"></i>
-                    </div>
-                    <div v-else-if="conn.uuid === connectingUuid" class="connecting-label">
-                        <i class="pi pi-spin pi-spinner" style="font-size: 1rem; margin-right: 8px;"></i>
-                        Connecting...
+                    <div v-if="conn.uuid === transitioningUuid" class="connecting-label" style="justify-content: center; width: 44px;">
+                        <i class="pi pi-spin pi-spinner" style="font-size: 1.1rem; color: var(--accent-color);"></i>
                     </div>
                     <div v-else class="switch-container">
                          <label class="switch click-passthrough">

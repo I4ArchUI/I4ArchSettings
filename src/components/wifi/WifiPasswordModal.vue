@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch, computed } from 'vue';
+import { ref, watch, computed, onMounted, onUnmounted } from 'vue';
 
 interface Props {
     visible: boolean;
@@ -39,6 +39,20 @@ watch(() => props.visible, (newVal) => {
 const closeDialog = () => {
     emit('close');
 };
+
+const onKeydown = (e: KeyboardEvent) => {
+    if (e.key === 'Escape' && props.visible && !props.saving) {
+        closeDialog();
+    }
+};
+
+onMounted(() => {
+    document.addEventListener('keydown', onKeydown);
+});
+
+onUnmounted(() => {
+    document.removeEventListener('keydown', onKeydown);
+});
 
 const handleConnect = () => {
     if (password.value.trim().length > 0) {

@@ -12,7 +12,7 @@ export function useVpnViewModel() {
     // --- State ---
     const connections = ref<VpnConnection[]>([]);
     const loading = ref(false);
-    const connectingUuid = ref<string | null>(null);
+    const transitioningUuid = ref<string | null>(null);
 
     // Modal and form state for adding new connections
     const showAddModal = ref(false);
@@ -38,7 +38,7 @@ export function useVpnViewModel() {
         return [...connections.value].sort((a, b) => {
             const getRank = (conn: VpnConnection) => {
                 if (conn.active) return 3;
-                if (conn.uuid === connectingUuid.value) return 2;
+                if (conn.uuid === transitioningUuid.value) return 2;
                 return 1;
             };
 
@@ -68,18 +68,36 @@ export function useVpnViewModel() {
      * Connects to a specific VPN connection.
      */
     const connect = async (conn: VpnConnection) => {
-        if (conn.active || connectingUuid.value) return;
+        if (conn.active || transitioningUuid.value) return;
 
-        connectingUuid.value = conn.uuid;
+        transitioningUuid.value = conn.uuid;
         try {
             await invoke('connect_vpn', { uuid: conn.uuid });
-            showToast(`Connected to ${conn.name}`, 'success');
-            conn.active = true;
-            fetchConnections();
+            showToast(`Connecting to ${conn.name}...`, 'info');
+            
+            // Poll until NM registers it as active
+            let attempts = 0;
+            let connected = false;
+            while (attempts < 15) {
+                await new Promise(resolve => setTimeout(resolve, 800));
+                await fetchConnections();
+                const updated = connections.value.find(c => c.uuid === conn.uuid);
+                if (updated && updated.active) {
+                    connected = true;
+                    break;
+                }
+                attempts++;
+            }
+            if (connected) {
+                showToast(`Connected to ${conn.name}`, 'success');
+            } else {
+                showToast(`Connection to ${conn.name} is taking longer than expected`, 'warning');
+            }
         } catch (e) {
             showToast(`Failed to connect to ${conn.name}: ${e}`, 'error');
         } finally {
-            connectingUuid.value = null;
+            transitioningUuid.value = null;
+            fetchConnections();
         }
     };
 
@@ -87,15 +105,36 @@ export function useVpnViewModel() {
      * Disconnects an active VPN connection.
      */
     const disconnect = async (conn: VpnConnection) => {
-        if (!conn.active) return;
+        if (!conn.active || transitioningUuid.value) return;
 
+        transitioningUuid.value = conn.uuid;
         try {
             await invoke('disconnect_vpn', { uuid: conn.uuid });
-            showToast(`Disconnected from ${conn.name}`, 'success');
-            conn.active = false;
-            fetchConnections();
+            showToast(`Disconnecting from ${conn.name}...`, 'info');
+            
+            // Poll until NM registers it as inactive
+            let attempts = 0;
+            let disconnected = false;
+            while (attempts < 15) {
+                await new Promise(resolve => setTimeout(resolve, 800));
+                await fetchConnections();
+                const updated = connections.value.find(c => c.uuid === conn.uuid);
+                if (updated && !updated.active) {
+                    disconnected = true;
+                    break;
+                }
+                attempts++;
+            }
+            if (disconnected) {
+                showToast(`Disconnected from ${conn.name}`, 'success');
+            } else {
+                showToast(`Disconnection from ${conn.name} is taking longer than expected`, 'warning');
+            }
         } catch (e) {
             showToast(`Failed to disconnect ${conn.name}: ${e}`, 'error');
+        } finally {
+            transitioningUuid.value = null;
+            fetchConnections();
         }
     };
 
@@ -270,7 +309,7 @@ export function useVpnViewModel() {
         connections,
         sortedConnections,
         loading,
-        connectingUuid,
+        transitioningUuid,
         fetchConnections,
         connect,
         disconnect,

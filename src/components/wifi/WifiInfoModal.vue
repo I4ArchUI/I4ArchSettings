@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, onMounted, onUnmounted } from 'vue';
 import type { WifiNetwork, WifiConfig } from '../../models/wifi.model';
 
 interface Props {
@@ -23,6 +23,20 @@ const closeDialog = () => {
 const handleConfigure = () => {
     emit('configure');
 };
+
+const onKeydown = (e: KeyboardEvent) => {
+    if (e.key === 'Escape' && props.visible) {
+        closeDialog();
+    }
+};
+
+onMounted(() => {
+    document.addEventListener('keydown', onKeydown);
+});
+
+onUnmounted(() => {
+    document.removeEventListener('keydown', onKeydown);
+});
 
 // Calculate subnet mask from CIDR prefix
 const subnetMask = computed(() => {

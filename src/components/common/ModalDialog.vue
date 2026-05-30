@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, onUnmounted } from 'vue';
 
-defineProps<{
+const props = defineProps<{
     title: string;
     modelValue: boolean; // open/close state
 }>();
@@ -18,7 +18,7 @@ const close = () => {
 
 // Close on escape
 const onKeydown = (e: KeyboardEvent) => {
-    if (e.key === 'Escape') close();
+    if (e.key === 'Escape' && props.modelValue) close();
 };
 
 onMounted(() => document.addEventListener('keydown', onKeydown));
